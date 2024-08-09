@@ -1,4 +1,4 @@
-module viking_credit_report
+module growth_report
 
 go 1.22.1
 
