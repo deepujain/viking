@@ -1,11 +1,9 @@
-// Package utils provides utility functions for generating credit reports.
 package utils
 
 import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"time"
@@ -13,7 +11,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-// Bill represents the details of each bill.
+// Bill struct holds the details of each bill
 type Bill struct {
 	Date          string
 	RefNo         string
@@ -23,43 +21,54 @@ type Bill struct {
 	AgeOfBill     int
 }
 
-// PartyData represents the categorized data for a retailer.
+// PartyData struct to hold the categorized data along with the party name
 type PartyData struct {
 	RetailerName string
 	Amounts      map[string]interface{}
 }
 
-// readBills reads and parses bill data from an Excel file.
-func readBills(inputFilePath string) ([]Bill, error) {
+// Open the input Excel file
+// Print sheet names to verify
+// Use the first sheet or specify the sheet name if known
+// Assumes the first sheet is the one you want
+// Read rows from the sheet
+// Process the data rows, ignoring the last row which contains totals
+// Start from row 12 (index 11)
+// Skip last row (total row)
+func readBills(inputFilePath string) []Bill {
 	xlFile, err := excelize.OpenFile(inputFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open input file: %w", err)
+		log.Fatalf("Failed to open input file: %v", err)
 	}
-	defer xlFile.Close()
 
 	sheetNames := xlFile.GetSheetList()
 	if len(sheetNames) == 0 {
-		return nil, fmt.Errorf("no sheets found in the input file")
+		log.Fatalf("No sheets found in the input file")
 	}
 
 	sheet := sheetNames[0]
+
 	rows, err := xlFile.GetRows(sheet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get rows: %w", err)
+		log.Fatalf("Failed to get rows: %v", err)
 	}
 
 	var bills []Bill
 	totalRows := len(rows)
-	for i, row := range rows[11:] { // Start from row 12 (index 11)
-		if len(row) < 6 || i+11 == totalRows-1 { // Skip last row (total row)
+	for i, row := range rows[11:] {
+		if len(row) < 6 || i+11 == totalRows-1 {
 			continue
 		}
 
+		date := row[0]
+		refNo := row[1]
+		retailerName := row[2]
 		pendingAmount, err := strconv.ParseFloat(row[3], 64)
 		if err != nil {
 			log.Printf("Error parsing pending amount: %v", err)
 			continue
 		}
+		dueDate := row[4]
 		ageOfBill, err := strconv.Atoi(row[5])
 		if err != nil {
 			log.Printf("Error parsing age of bill: %v", err)
@@ -67,61 +76,71 @@ func readBills(inputFilePath string) ([]Bill, error) {
 		}
 
 		bills = append(bills, Bill{
-			Date:          row[0],
-			RefNo:         row[1],
-			RetailerName:  row[2],
+			Date:          date,
+			RefNo:         refNo,
+			RetailerName:  retailerName,
 			PendingAmount: pendingAmount,
-			DueDate:       row[4],
+			DueDate:       dueDate,
 			AgeOfBill:     ageOfBill,
 		})
 	}
-	return bills, nil
+	return bills
 }
 
-// readTSEToRetailerMapping reads the TSE to retailer mapping from an Excel file.
-func readTSEToRetailerMapping(tseMappingFilePath string) (map[string]string, error) {
+// Read TSE mapping file
+// Print sheet names to verify
+// Assumes the first sheet is the one you want
+// Read rows from the TSE sheet
+// Assuming first row is headers
+// Dealer Name in column 7 (index 6)
+// TSE Name in column 16 (index 15)
+
+func readTSEToRetailerMapping(tseMappingFilePath string) map[string]string {
 	tseMappingFile, err := excelize.OpenFile(tseMappingFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open TSE mapping file: %w", err)
+		log.Fatalf("Failed to open TSE mapping file: %v", err)
 	}
-	defer tseMappingFile.Close()
 
 	tseSheetNames := tseMappingFile.GetSheetList()
 	if len(tseSheetNames) == 0 {
-		return nil, fmt.Errorf("no sheets found in the TSE mapping file")
+		log.Fatalf("No sheets found in the TSE mapping file")
 	}
 
 	tseSheet := tseSheetNames[0]
+
 	tseRows, err := tseMappingFile.GetRows(tseSheet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get rows from TSE mapping file: %w", err)
+		log.Fatalf("Failed to get rows from TSE mapping file: %v", err)
 	}
 
 	tseMapping := make(map[string]string)
-	for _, row := range tseRows[1:] { // Skip header row
+	for _, row := range tseRows[1:] {
 		if len(row) < 16 {
 			continue
 		}
-		dealerName, tseName := row[6], row[15]
+
+		dealerName := row[6]
+		tseName := row[15]
+
 		if dealerName != "" && tseName != "" {
 			tseMapping[dealerName] = tseName
 		}
 	}
-	return tseMapping, nil
+	return tseMapping
 }
 
-// aggregateCreditByRetailer categorizes the bills by retailer and age category.
+// aggregateCreditByRetailer categorizes the bills by retailer and age category
 func aggregateCreditByRetailer(bills []Bill, tseMapping map[string]string) map[string]map[string]interface{} {
 	ageCategories := []string{"0-7 days", "8-14 days", "15-21 days", "22-30 days", ">30 days"}
 	aggregatedCreditRetailer := make(map[string]map[string]interface{})
 
-	// Group bills by retailer name
+	// First, group all bills by retailer name
 	groupedBills := make(map[string][]Bill)
 	for _, bill := range bills {
 		groupedBills[bill.RetailerName] = append(groupedBills[bill.RetailerName], bill)
 	}
 
-	// Process each retailer's bills
+	// Now process each retailer's bills
 	for retailerName, partyBills := range groupedBills {
 		aggregatedCreditRetailer[retailerName] = make(map[string]interface{})
 		totalPendingAmount := 0.0
@@ -134,8 +153,18 @@ func aggregateCreditByRetailer(bills []Bill, tseMapping map[string]string) map[s
 		// Categorize bills into age categories and compute total pending amount
 		for _, bill := range partyBills {
 			totalPendingAmount += bill.PendingAmount
-			category := getAgeCategory(bill.AgeOfBill)
-			aggregatedCreditRetailer[retailerName][category] = aggregatedCreditRetailer[retailerName][category].(float64) + bill.PendingAmount
+			switch {
+			case bill.AgeOfBill >= 0 && bill.AgeOfBill <= 7:
+				aggregatedCreditRetailer[retailerName]["0-7 days"] = aggregatedCreditRetailer[retailerName]["0-7 days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill >= 8 && bill.AgeOfBill <= 14:
+				aggregatedCreditRetailer[retailerName]["8-14 days"] = aggregatedCreditRetailer[retailerName]["8-14 days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill >= 15 && bill.AgeOfBill <= 21:
+				aggregatedCreditRetailer[retailerName]["15-21 days"] = aggregatedCreditRetailer[retailerName]["15-21 days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill >= 22 && bill.AgeOfBill <= 30:
+				aggregatedCreditRetailer[retailerName]["22-30 days"] = aggregatedCreditRetailer[retailerName]["22-30 days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill > 30:
+				aggregatedCreditRetailer[retailerName][">30 days"] = aggregatedCreditRetailer[retailerName][">30 days"].(float64) + bill.PendingAmount
+			}
 		}
 		aggregatedCreditRetailer[retailerName]["Total"] = totalPendingAmount
 		aggregatedCreditRetailer[retailerName]["TSE"] = tseMapping[retailerName] // Add TSE name
@@ -144,24 +173,7 @@ func aggregateCreditByRetailer(bills []Bill, tseMapping map[string]string) map[s
 	return aggregatedCreditRetailer
 }
 
-// getAgeCategory returns the age category for a given bill age.
-func getAgeCategory(age int) string {
-	switch {
-	case age >= 0 && age <= 7:
-		return "0-7 days"
-	case age >= 8 && age <= 14:
-		return "8-14 days"
-	case age >= 15 && age <= 21:
-		return "15-21 days"
-	case age >= 22 && age <= 30:
-		return "22-30 days"
-	default:
-		return ">30 days"
-	}
-}
-
-// writeCategorizedData writes the categorized data to an Excel file.
-func writeCategorizedData(dirPath, fileName string, categorizedData map[string]map[string]interface{}) error {
+func writeCategorizedData(dirPath string, fileName string, categorizedData map[string]map[string]interface{}) error {
 	// Convert the map to a slice for sorting
 	var dataSlice []PartyData
 	for retailerName, amounts := range categorizedData {
@@ -184,39 +196,15 @@ func writeCategorizedData(dirPath, fileName string, categorizedData map[string]m
 	}
 
 	// Define styles
-	headerStyle, numberStyle, cellStyle, err := createStyles(f)
-	if err != nil {
-		return err
-	}
-
-	// Write the header row
-	headers := []string{"Retailer Name", "0-7 days", "8-14 days", "15-21 days", "22-30 days", ">30 days", "Total", "TSE"}
-	if err := writeHeaders(f, sheetName, headers, headerStyle); err != nil {
-		return err
-	}
-
-	// Adjust column widths
-	adjustColumnWidths(f, sheetName, headers)
-
-	// Write the sorted categorized data to the output file
-	if err := writeData(f, sheetName, dataSlice, headers, numberStyle, cellStyle); err != nil {
-		return err
-	}
-
-	// Save the output file
-	filePath := filepath.Join(dirPath, fileName)
-	if err := f.SaveAs(filePath); err != nil {
-		return fmt.Errorf("failed to save output file: %w", err)
-	}
-
-	return nil
-}
-
-// createStyles creates the styles used in the Excel file.
-func createStyles(f *excelize.File) (int, int, int, error) {
 	headerStyle, err := f.NewStyle(&excelize.Style{
-		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFFF00"}, Pattern: 1},
-		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{
+			Type:    "pattern",
+			Color:   []string{"FFFF00"}, // Yellow background
+			Pattern: 1,
+		},
+		Font: &excelize.Font{
+			Bold: true,
+		},
 		Border: []excelize.Border{
 			{Type: "left", Color: "000000", Style: 1},
 			{Type: "top", Color: "000000", Style: 1},
@@ -225,12 +213,13 @@ func createStyles(f *excelize.File) (int, int, int, error) {
 		},
 	})
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("failed to create header style: %w", err)
+		return fmt.Errorf("failed to create header style: %w", err)
 	}
 
+	// Custom number format for Indian numbering
 	inrFormat := "#,##,##0.00"
 	numberStyle, err := f.NewStyle(&excelize.Style{
-		CustomNumFmt: &inrFormat,
+		CustomNumFmt: &inrFormat, // Custom number format for Indian numbering
 		Border: []excelize.Border{
 			{Type: "left", Color: "000000", Style: 1},
 			{Type: "top", Color: "000000", Style: 1},
@@ -239,7 +228,7 @@ func createStyles(f *excelize.File) (int, int, int, error) {
 		},
 	})
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("failed to create number style: %w", err)
+		return fmt.Errorf("failed to create number style: %w", err)
 	}
 
 	cellStyle, err := f.NewStyle(&excelize.Style{
@@ -251,14 +240,11 @@ func createStyles(f *excelize.File) (int, int, int, error) {
 		},
 	})
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("failed to create cell style: %w", err)
+		return fmt.Errorf("failed to create cell style: %w", err)
 	}
 
-	return headerStyle, numberStyle, cellStyle, nil
-}
-
-// writeHeaders writes the header row to the Excel file.
-func writeHeaders(f *excelize.File, sheetName string, headers []string, headerStyle int) error {
+	// Write the header row
+	headers := []string{"Retailer Name", "0-7 days", "8-14 days", "15-21 days", "22-30 days", ">30 days", "Total", "TSE"}
 	for i, header := range headers {
 		cell := fmt.Sprintf("%s%d", string('A'+i), 1)
 		if err := f.SetCellValue(sheetName, cell, header); err != nil {
@@ -268,20 +254,15 @@ func writeHeaders(f *excelize.File, sheetName string, headers []string, headerSt
 			return fmt.Errorf("failed to set header cell style: %w", err)
 		}
 	}
-	return nil
-}
 
-// adjustColumnWidths adjusts the column widths in the Excel file.
-func adjustColumnWidths(f *excelize.File, sheetName string, headers []string) {
+	// Adjust column widths
 	f.SetColWidth(sheetName, "A", "A", 46) // Width for Retailer Name
 	for i := 1; i < len(headers); i++ {
 		col := string('A' + i)
 		f.SetColWidth(sheetName, col, col, 13) // Width for other columns
 	}
-}
 
-// writeData writes the categorized data to the Excel file.
-func writeData(f *excelize.File, sheetName string, dataSlice []PartyData, headers []string, numberStyle, cellStyle int) error {
+	// Write the sorted categorized data to the output file
 	for rowNum, data := range dataSlice {
 		rowIndex := rowNum + 2
 		if err := f.SetCellValue(sheetName, fmt.Sprintf("A%d", rowIndex), data.RetailerName); err != nil {
@@ -306,13 +287,19 @@ func writeData(f *excelize.File, sheetName string, dataSlice []PartyData, header
 			return fmt.Errorf("failed to set cell style: %w", err)
 		}
 	}
+
+	// Save the output file
+	filePath := fmt.Sprintf("%s/%s", dirPath, fileName)
+	if err := f.SaveAs(filePath); err != nil {
+		return fmt.Errorf("failed to save output file: %w", err)
+	}
+
 	return nil
 }
 
-// RunCreditReport runs the entire credit report generation process.
-func RunCreditReport() error {
-	inputFilePath := "../data/Bills.xlsx"
-	tseMappingFilePath := "../data/VIKING'S - DEALER Credit Period LIST.xlsx"
+func RunCreditReport() {
+	inputFilePath := "../data/Bills.xlsx"                                     // Read from current directory
+	tseMappingFilePath := "../data/VIKING'S - DEALER Credit Period LIST.xlsx" // Read the TSE mapping file
 
 	// Get today's date for folder name
 	today := time.Now().Format("2006-01-02")
@@ -320,26 +307,31 @@ func RunCreditReport() error {
 
 	// Create directory for today's date
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
+		log.Fatalf("Failed to create directory: %v", err)
 	}
 
-	// Read bills from input file
-	bills, err := readBills(inputFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to read bills: %w", err)
-	}
+	bills := readBills(inputFilePath)
 
-	// Read TSE mapping
-	tseMapping, err := readTSEToRetailerMapping(tseMappingFilePath)
-	if err != nil {
-		return fmt.Errorf("failed to read TSE mapping: %w", err)
-	}
+	tseMapping := readTSEToRetailerMapping(tseMappingFilePath)
 
 	// Categorize bills by retailer and age category
 	aggregatedData := aggregateCreditByRetailer(bills, tseMapping)
 
 	// Separate data by TSE
-	tseFiles, missingTSEData := separateDataByTSE(aggregatedData)
+	tseFiles := make(map[string]map[string]map[string]interface{})
+	missingTSEData := make(map[string]map[string]interface{})
+
+	for retailerName, amounts := range aggregatedData {
+		tseName := amounts["TSE"].(string)
+		if tseName == "" {
+			missingTSEData[retailerName] = amounts
+		} else {
+			if tseFiles[tseName] == nil {
+				tseFiles[tseName] = make(map[string]map[string]interface{})
+			}
+			tseFiles[tseName][retailerName] = amounts
+		}
+	}
 
 	// Write output files for each TSE
 	for tseName, data := range tseFiles {
@@ -359,26 +351,4 @@ func RunCreditReport() error {
 			fmt.Printf("Credit report for missing TSE saved to: %s/TSE_MISSING_credit_report.xlsx\n", dirPath)
 		}
 	}
-
-	return nil
-}
-
-// separateDataByTSE separates the aggregated data by TSE.
-func separateDataByTSE(aggregatedData map[string]map[string]interface{}) (map[string]map[string]map[string]interface{}, map[string]map[string]interface{}) {
-	tseFiles := make(map[string]map[string]map[string]interface{})
-	missingTSEData := make(map[string]map[string]interface{})
-
-	for retailerName, amounts := range aggregatedData {
-		tseName := amounts["TSE"].(string)
-		if tseName == "" {
-			missingTSEData[retailerName] = amounts
-		} else {
-			if tseFiles[tseName] == nil {
-				tseFiles[tseName] = make(map[string]map[string]interface{})
-			}
-			tseFiles[tseName][retailerName] = amounts
-		}
-	}
-
-	return tseFiles, missingTSEData
 }
