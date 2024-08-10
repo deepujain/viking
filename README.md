@@ -127,6 +127,6 @@ This project is proprietary software owned by Viking's. All rights reserved.
 
 4. **Confidentiality**: Users of this software agree to maintain the confidentiality of the codebase and any associated documentation.
 
-For any licensing inquiries or permissions, please contact [insert contact information].
+For any licensing inquiries or permissions, please contact Viking's.
 
 © 2024 Viking's. All Rights Reserved.
