@@ -21,6 +21,9 @@ Our daily reporting system addresses key business needs:
    - Monitor daily sales performance across retailers
    - Compare current month-to-date (MTD) with last month-to-date (LMTD) data
    - Identify growth trends in sell-out (SO) and sell-through (ST) metrics
+     - Sell-through (ST): Sale of Viking's mobiles and accessories to its retailers
+     - Sell-out (SO): Sale of those mobiles and accessories by retailers to customers
+
 
 2. **Credit Management**:
    - Track outstanding bills by retailer
@@ -47,6 +50,8 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 
 1. Growth Report Generation
    - Analyzes sell-out (SO) and sell-through (ST) data
+     - Sell-through (ST): Viking's sales to its retailers
+     - Sell-out (SO): Retailers' sales to end customers
    - Compares current month-to-date (MTD) with last month-to-date (LMTD) data
    - Calculates growth percentages
    - Generates Excel report with color-coded growth indicators
