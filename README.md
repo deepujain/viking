@@ -1,16 +1,49 @@
 # Viking Reports
 
-This project contains two main components for generating reports: Growth Report and Credit Report.
+Viking Reports is a robust reporting system designed to generate daily Growth and Credit reports, providing crucial insights for business decision-making and performance tracking.
 
 ## Table of Contents
 
-- [Features](#features)
+- [Business Objectives](#business-objectives)
+- [Key Features](#key-features)
+- [Reports](#reports)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Dependencies](#dependencies)
 
-## Features
+
+## Business Objectives
+
+Our daily reporting system addresses key business needs:
+
+1. **Growth Tracking**: 
+   - Monitor daily sales performance across retailers
+   - Compare current month-to-date (MTD) with last month-to-date (LMTD) data
+   - Identify growth trends in sell-out (SO) and sell-through (ST) metrics
+
+2. **Credit Management**:
+   - Track outstanding bills by retailer
+   - Categorize bills by age for better debt management
+   - Provide Territory Sales Executive (TSE) specific reports for targeted follow-ups
+
+3. **Performance Analysis**:
+   - Highlight top-performing and underperforming retailers
+   - Enable data-driven decisions for inventory management and sales strategies
+
+4. **Risk Assessment**:
+   - Identify retailers with aging credit for proactive risk mitigation
+   - Support financial planning and cash flow management
+
+## Key Features
+
+- **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
+- **Credit Report**: Processes bill data, categorizes by age, and creates separate reports for each TSE and missing TSE data.
+- **Automated Daily Generation**: Reports are automatically generated and saved with date-stamped directories for easy tracking and comparison.
+
+By providing these daily reports, Viking Reports empowers businesses to make informed decisions, optimize operations, and drive growth while managing financial risks effectively.
+
+## Reports
 
 1. Growth Report Generation
    - Analyzes sell-out (SO) and sell-through (ST) data
