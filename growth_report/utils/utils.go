@@ -314,6 +314,26 @@ func writeSingleRow(f *excelize.File, sheetName string, rowIndex int, data Growt
 	f.SetCellValue(sheetName, fmt.Sprintf("H%d", rowIndex), int(data.GrowthSTPct))
 	f.SetCellValue(sheetName, fmt.Sprintf("I%d", rowIndex), tseMapping[data.DealerCode])
 
+	// Set borders for all cells in the row
+	cells := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I"}
+	borderStyle := excelize.Style{
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+	}
+	borderStyleID, err := f.NewStyle(&borderStyle)
+	if err != nil {
+		return err
+	}
+	for _, cell := range cells {
+		cellRef := fmt.Sprintf("%s%d", cell, rowIndex)
+		f.SetCellStyle(sheetName, cellRef, cellRef, borderStyleID)
+	}
+
+	// Apply conditional styles for growth percentages
 	gsoCell := fmt.Sprintf("E%d", rowIndex)
 	gstCell := fmt.Sprintf("H%d", rowIndex)
 
@@ -339,11 +359,11 @@ func adjustColumnWidths(f *excelize.File, sheetName string) {
 		"B": 46, // Dealer Name
 		"C": 13, // MTD SO
 		"D": 13, // LMTD SO
-		"E": 13, // Growth SO (%)
+		"E": 15, // Growth SO (%)
 		"F": 13, // MTD ST
 		"G": 13, // LMTD ST
 		"H": 13, // Growth ST (%)
-		"I": 23, // TSE
+		"I": 19, // TSE
 	}
 
 	for col, width := range columnWidths {

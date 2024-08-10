@@ -38,6 +38,11 @@ Our daily reporting system addresses key business needs:
    - Identify retailers with aging credit for proactive risk mitigation
    - Support financial planning and cash flow management
 
+5. **Inventory Cost Management**:
+   - Track total inventory cost for each retailer
+   - Assess potential financial exposure in case of retailer flight risk
+   - Support inventory optimization and risk mitigation strategies
+
 ## Key Features
 
 - **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
@@ -61,6 +66,10 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    - Categorizes bills by age (0-7 days, 8-14 days, 15-21 days, 22-30 days, >30 days)
    - Aggregates credit data by retailer and TSE (Territory Sales Executive)
    - Generates separate Excel reports for each TSE and a report for missing TSE data
+3. COGS Report Generation
+   - Calculates the total inventory cost for each retailer (store)
+   - Helps assess potential financial impact in case of flight risk
+   - Provides insights for inventory management and risk assessment
 
 ## Prerequisites
 
@@ -113,6 +122,19 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    ```
 
 3. The generated reports will be saved in a new directory named `daily_credit_reports_YYYY-MM-DD`.
+
+### COGS Report
+
+1. Ensure the following Excel file is present in the `data` directory:
+   - `Inventory.xlsx` (containing current inventory data for all retailers)
+
+2. Run the COGS report generator:
+   ```
+   cd cogs_report
+   go run main.go
+   ```
+
+3. The generated report will be saved in a new directory named `daily_cogs_reports_YYYY-MM-DD`.
 
 ## Dependencies
 
