@@ -1,6 +1,6 @@
 # Viking Reports
 
-Viking Reports is a robust reporting system designed to generate daily Growth and Credit reports, providing crucial insights for business decision-making and performance tracking.
+Viking Reports is a comprehensive reporting system designed to generate daily Growth, Credit, and COGS reports, providing crucial insights for business decision-making, performance tracking, and risk management.
 
 ## Table of Contents
 
