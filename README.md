@@ -94,12 +94,11 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Growth Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `Dealer Information.xlsx`
-   - `MTD-SO.xlsx`
-   - `LMTD-SO.xlsx`
-   - `MTD-ST.xlsx`
-   - `LMTD-ST.xlsx`
-   - `VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `data/common/MTD-SO.xlsx`
+   - `data/common/LMTD-SO.xlsx`
+   - `data/common/MTD-ST.xlsx`
+   - `data/common/LMTD-ST.xlsx`
+   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
 
 2. Run the growth report generator:
    ```
@@ -112,8 +111,8 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Credit Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `Bills.xlsx`
-   - `VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `data/credit_report/Bills.xlsx`
+   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
 
 2. Run the credit report generator:
    ```
@@ -126,7 +125,11 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### COGS Report
 
 1. Ensure the following Excel file is present in the `data` directory:
-   - `Inventory.xlsx` (containing current inventory data for all retailers)
+   - `data/cogs_report/DealerInventory.xlsx` (containing current inventory data for all retailers)
+   - `data/common/ProductPriceList.xlsx`
+   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `generated credit report of each tse`
+
 
 2. Run the COGS report generator:
    ```
