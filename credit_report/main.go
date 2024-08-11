@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	inputFilePath := "../data/Bills.xlsx"                                     // Read from current directory
-	tseMappingFilePath := "../data/VIKING'S - DEALER Credit Period LIST.xlsx" // Read the TSE mapping file
+	inputFilePath := "../data/credit_report/Bills.xlsx"                              // Read from current directory
+	tseMappingFilePath := "../data/common/VIKING'S - DEALER Credit Period LIST.xlsx" // Read the TSE mapping file
 
 	// Get today's date for folder name
 	today := time.Now().Format("2006-01-02")

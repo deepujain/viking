@@ -71,13 +71,13 @@ func readDealerInformation(filePath string) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Dealer Name column index: %w", err)
 	}
-
 	dealerInfo := make(map[string]string)
 	for i, row := range rows[1:] { // Skip header row
+
 		if dealerCode := row[dealerCodeIdx]; dealerCode != "" {
 			dealerInfo[dealerCode] = row[dealerNameIdx]
 		} else {
-			log.Printf("Skipping row %d due to empty Dealer Code", i+2)
+			log.Printf("Dealer Code at row %d is missing in %s for Dealer Name %s", i, filePath, row[dealerNameIdx])
 		}
 	}
 
@@ -407,12 +407,12 @@ func readTSEToRetailerMapping(tseMappingFilePath string) (map[string]string, err
 func RunGrowthReport() error {
 	dataDir := "../data"
 	files := map[string]string{
-		"dealerInfo": "Dealer Information.xlsx",
-		"mtdSO":      "MTD-SO.xlsx",
-		"lmtdSO":     "LMTD-SO.xlsx",
-		"mtdST":      "MTD-ST.xlsx",
-		"lmtdST":     "LMTD-ST.xlsx",
-		"tseMapping": "VIKING'S - DEALER Credit Period LIST.xlsx",
+		"dealerInfo": "/common/VIKING'S - DEALER Credit Period LIST.xlsx",
+		"tseMapping": "/common/VIKING'S - DEALER Credit Period LIST.xlsx",
+		"mtdSO":      "/growth_report/MTD-SO.xlsx",
+		"lmtdSO":     "/growth_report/LMTD-SO.xlsx",
+		"mtdST":      "/growth_report/MTD-ST.xlsx",
+		"lmtdST":     "/growth_report/LMTD-ST.xlsx",
 	}
 
 	for key, filename := range files {
