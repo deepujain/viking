@@ -391,13 +391,15 @@ func readTSEToRetailerMapping(tseMappingFilePath string) (map[string]string, err
 	}
 
 	tseMapping := make(map[string]string)
-	for _, row := range tseRows[1:] { // Skip header row
+	for i, row := range tseRows[1:] { // Skip header row
 		if len(row) < 16 {
 			continue
 		}
 		dealerCode, tseName := row[5], row[15]
 		if dealerCode != "" && tseName != "" {
 			tseMapping[dealerCode] = tseName
+		} else {
+			log.Printf("Dealer Code at row %d is missing in %s for TSE Name %s", i, tseMappingFilePath, tseName)
 		}
 	}
 	return tseMapping, nil
@@ -427,36 +429,43 @@ func RunGrowthReport() error {
 
 	outputPath := filepath.Join(dirPath, "daily_growth_report.xlsx")
 
+	fmt.Println("Read Retailer Name to Code Mapping.")
 	dealerInfo, err := readDealerInformation(files["dealerInfo"])
 	if err != nil {
 		return fmt.Errorf("error reading dealer information: %w", err)
 	}
 
+	fmt.Printf("Read MTD SO data for %s \n", today)
 	mtdSOData, err := readSellData(files["mtdSO"], "SO")
 	if err != nil {
 		return fmt.Errorf("error reading MTD SO data: %w", err)
 	}
 
+	fmt.Printf("Read Last MTD SO data for %s \n", today)
 	lmtdSOData, err := readSellData(files["lmtdSO"], "SO")
 	if err != nil {
 		return fmt.Errorf("error reading LMTD SO data: %w", err)
 	}
 
+	fmt.Printf("Read Last MTD ST data for %s \n", today)
 	mtdSTData, err := readSellData(files["mtdST"], "ST")
 	if err != nil {
 		return fmt.Errorf("error reading MTD ST data: %w", err)
 	}
 
+	fmt.Printf("Read Last Last MTD ST data for %s \n", today)
 	lmtdSTData, err := readSellData(files["lmtdST"], "ST")
 	if err != nil {
 		return fmt.Errorf("error reading LMTD ST data: %w", err)
 	}
 
+	fmt.Println("Read Retailer to TSE Mapping.")
 	tseMapping, err := readTSEToRetailerMapping(files["tseMapping"])
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
 	}
 
+	fmt.Printf("Generate growth report of retailer for %s \n", today)
 	report := generateGrowthReport(mtdSOData, lmtdSOData, mtdSTData, lmtdSTData, dealerInfo)
 
 	if err := writeGrowthReport(report, tseMapping, outputPath); err != nil {

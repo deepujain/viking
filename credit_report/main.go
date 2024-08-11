@@ -24,12 +24,14 @@ func main() {
 
 	bills := utils.ReadBills(inputFilePath)
 
+	fmt.Println("Read Retailer to TSE Mapping.")
 	retailerNameToTSEMap := utils.ReadTSEToRetailerMapping(tseMappingFilePath)
 	retailerNameToCodeMap := utils.CreateRetailerNameToCodeMap(tseMappingFilePath)
 
 	// Categorize bills by retailer and age category
 	aggregatedData := utils.AggregateCreditByRetailer(bills, retailerNameToTSEMap)
 
+	fmt.Printf("Generate outstanding credit of retailer for %s \n", today)
 	// Separate data by TSE
 	tseFiles := make(map[string]map[string]map[string]interface{})
 	missingTSEData := make(map[string]map[string]interface{})
@@ -52,7 +54,7 @@ func main() {
 		if err := utils.WriteCategorizedData(dirPath, fileName, data, retailerNameToCodeMap); err != nil {
 			log.Printf("Error writing file for TSE %s: %v", tseName, err)
 		} else {
-			log.Printf("Credit report for TSE %s saved to: %s/%s\n", tseName, dirPath, fileName)
+			log.Printf("Credit report of %s for TSE %s saved to: %s/%s\n", today, tseName, dirPath, fileName)
 		}
 	}
 
@@ -61,7 +63,7 @@ func main() {
 		if err := utils.WriteCategorizedData(dirPath, "TSE_MISSING_credit_report.xlsx", missingTSEData, retailerNameToCodeMap); err != nil {
 			log.Printf("Error writing TSE_MISSING file: %v", err)
 		} else {
-			log.Printf("Credit report for missing TSE saved to: %s/TSE_MISSING_credit_report.xlsx\n", dirPath)
+			log.Printf("Credit report of %s for missing TSE saved to: %s/TSE_MISSING_credit_report.xlsx\n", today, dirPath)
 		}
 	}
 }

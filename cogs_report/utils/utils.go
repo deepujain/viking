@@ -431,16 +431,19 @@ func RunInventoryCostReport() error {
 
 	outputPath := filepath.Join(dirPath, "daily_inventory_cost_report.xlsx")
 
+	fmt.Println("Read Product Price List.")
 	priceData, err := readPriceData(priceFile)
 	if err != nil {
 		return fmt.Errorf("error reading price data: %w", err)
 	}
 
+	fmt.Println("Read Retailer to TSE Mapping.")
 	tseMapping, err := readTSEToRetailerMapping(tseMappingFile)
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
 	}
 
+	fmt.Printf("Read Credit Reports of each TSE for %s \n.", today)
 	// Read credit data
 	creditReportDir := "../credit_report"
 	creditData, err := readCreditData(creditReportDir, today)
@@ -454,6 +457,7 @@ func RunInventoryCostReport() error {
 		totalCreditMap[dealerCode] = credit.TotalCredit
 	}
 
+	fmt.Println("Read current inactive or invetory of dealer.")
 	inventoryData, err := readInventoryData(inventoryFile, priceData, tseMapping, totalCreditMap)
 	if err != nil {
 		return fmt.Errorf("error reading inventory data: %w", err)
@@ -463,6 +467,7 @@ func RunInventoryCostReport() error {
 	f := excelize.NewFile()
 	sheetName := "Inventory Report"
 
+	fmt.Printf("Generating inventory cost report of %s for dealer. \n", today)
 	if err := writeInventoryReport(f, sheetName, inventoryData); err != nil {
 		return fmt.Errorf("error writing inventory report: %w", err)
 	}
@@ -471,6 +476,6 @@ func RunInventoryCostReport() error {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 
-	fmt.Printf("Inventory cost report generated successfully: %s\n", outputPath)
+	fmt.Printf("Inventory cost report for %s generated successfully: %s\n", today, outputPath)
 	return nil
 }
