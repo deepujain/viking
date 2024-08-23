@@ -19,12 +19,12 @@ type ExcelInventoryRepository struct {
 }
 
 type InventoryData struct {
-	DealerCode           string
-	DealerName           string
-	TotalInventoryCost   float64
-	TotalCreditDue       float64
-	TSE                  string
-	CostCreditDifference float64
+	DealerCode         string
+	DealerName         string
+	TotalInventoryCost float64
+	TotalCreditDue     float64
+	TSE                string
+	InventoryShortfall float64
 }
 
 func NewExcelInventoryRepository(filePath string, priceData map[string]float64, tseMapping map[string]string) *ExcelInventoryRepository {
@@ -90,7 +90,7 @@ func (r *ExcelInventoryRepository) GetInventoryData() (map[string]*InventoryData
 	// Update inventoryData with CostCreditDifference and TotalCredit
 	for _, data := range inventoryData {
 		data.TotalCreditDue = retailerCodeToCreditMap[data.DealerCode]
-		data.CostCreditDifference = data.TotalInventoryCost - data.TotalCreditDue
+		data.InventoryShortfall = data.TotalInventoryCost - data.TotalCreditDue
 	}
 
 	return inventoryData, nil

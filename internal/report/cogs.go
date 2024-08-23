@@ -84,6 +84,21 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 		},
 	})
 
+	// Create a new redStyle
+	redStyle, _ := f.NewStyle(&excelize.Style{
+		Fill:         excelize.Fill{Type: "pattern", Color: []string{"FF0000"}, Pattern: 1}, // Light red background
+		CustomNumFmt: &inrFormat,                                                            // Custom number format for Indian numbering
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+		Font: &excelize.Font{
+			Bold: true, // Set text to bold
+		},
+	})
+
 	// Convert map to slice for sorting
 	inventorySlice := make([]*repository.InventoryData, 0, len(inventoryData))
 	for _, data := range inventoryData {
@@ -93,7 +108,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 	// Sort by TSE and then by Cost-Credit Difference
 	sort.Slice(inventorySlice, func(i, j int) bool {
 		if inventorySlice[i].TSE == inventorySlice[j].TSE {
-			return inventorySlice[i].CostCreditDifference < inventorySlice[j].CostCreditDifference
+			return inventorySlice[i].InventoryShortfall < inventorySlice[j].InventoryShortfall
 		}
 		return inventorySlice[i].TSE < inventorySlice[j].TSE
 	})
@@ -106,7 +121,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 			data.TSE,
 			data.TotalInventoryCost,
 			data.TotalCreditDue,
-			data.CostCreditDifference,
+			data.InventoryShortfall,
 		}
 		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
 			return err
@@ -115,7 +130,13 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 		// Apply number style to numeric columns (0-7 Days to Total Credit)
 		for col := 3; col <= 5; col++ { // Columns C (3) to I (5)
 			cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
-			if err := f.SetCellStyle(sheetName, cell, cell, numberStyle); err != nil {
+			var style int
+			if data.InventoryShortfall < 0 { // Check if InventoryShortfall is negative
+				style = redStyle // Use redStyle for negative values
+			} else {
+				style = numberStyle // Use numberStyle for non-negative values
+			}
+			if err := f.SetCellStyle(sheetName, cell, cell, style); err != nil {
 				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 			}
 		}
