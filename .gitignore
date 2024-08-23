@@ -10,11 +10,19 @@ daily_credit_reports_*/
 # Ignore folders starting with daily_growth_reports_
 daily_growth_reports_*/
 
+# Ignore folders starting with inventory_cost_report_
+inventory_cost_report_*/
+
 # Ignore .DS_Store files
 *.DS_Store
 
 # Ignore .xlsx files
 *.xlsx
 
-# Ignore executable files
+# Ignore windows executable files
 *.exe
+
+# Ignore specific executable files
+cmd/cogs_report/cogs_report
+cmd/credit_report/credit_report
+cmd/growth_report/growth_report
