@@ -11,6 +11,17 @@ type ExcelSalesRepository struct {
 	filePath string
 }
 
+type GrowthData struct {
+	DealerCode  string
+	DealerName  string
+	MTDSO       int
+	LMTDSO      int
+	GrowthSOPct float64
+	MTDST       int
+	LMTDST      int
+	GrowthSTPct float64
+}
+
 type SellData struct {
 	DealerCode string
 	DealerName string
@@ -64,15 +75,4 @@ func (r *ExcelSalesRepository) GetSellData(fileType string) (map[string]*SellDat
 	}
 
 	return sellData, nil
-}
-
-type GrowthReport struct {
-	DealerCode  string
-	DealerName  string
-	MTDSO       int
-	LMTDSO      int
-	GrowthSOPct float64
-	MTDST       int
-	LMTDST      int
-	GrowthSTPct float64
 }
