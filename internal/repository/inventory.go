@@ -101,7 +101,7 @@ func (r *ExcelInventoryRepository) GetTotalCreditFromReports() (map[string]float
 	// Generate today's date in YYYY-MM-DD format
 	today := time.Now().Format("2006-01-02")
 	fmt.Printf("Fetching today's credit report for each retailer on %s\n", today) // Print key-value pairs
-	reportDir := fmt.Sprintf("../credit_report/daily_credit_reports_%s", today)
+	reportDir := fmt.Sprintf("../credit_report/credit_reports_%s", today)
 
 	// Read all .xlsx files in the directory
 	err := filepath.Walk(reportDir, func(path string, info os.FileInfo, err error) error {

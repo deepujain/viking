@@ -5,10 +5,10 @@ data/
 *.exe
 
 # Ignore folders starting with daily_credit_reports_
-daily_credit_reports_*/
+credit_reports_*/
 
 # Ignore folders starting with daily_growth_reports_
-daily_growth_reports_*/
+growth_reports_*/
 
 # Ignore folders starting with inventory_cost_report_
 inventory_cost_report_*/

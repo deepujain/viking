@@ -106,7 +106,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    go run main.go
    ```
 
-3. The generated report will be saved in a new directory named `daily_growth_reports_YYYY-MM-DD`.
+3. The generated report will be saved in a new directory named `growth_reports_YYYY-MM-DD`.
 
 ### Credit Report
 
@@ -120,7 +120,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    go run main.go
    ```
 
-3. The generated reports will be saved in a new directory named `daily_credit_reports_YYYY-MM-DD`.
+3. The generated reports will be saved in a new directory named `credit_reports_YYYY-MM-DD`.
 
 ### COGS Report
 
@@ -137,7 +137,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    go run main.go
    ```
 
-3. The generated report will be saved in a new directory named `daily_cogs_reports_YYYY-MM-DD`.
+3. The generated report will be saved in a new directory named `cogs_reports_YYYY-MM-DD`.
 
 ## Dependencies
 

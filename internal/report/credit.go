@@ -46,7 +46,7 @@ func (g *CreditReportGenerator) Generate() error {
 
 	aggregatedData := g.creditRepo.AggregateCreditByRetailer(bills, tseMapping, retailerNameToCodeMap)
 
-	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "daily_credit_reports")
+	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "credit_reports")
 	if err := g.writeCreditReports(outputDir, aggregatedData); err != nil {
 		return fmt.Errorf("error writing credit reports: %w", err)
 	}

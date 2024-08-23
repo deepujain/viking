@@ -39,7 +39,7 @@ func (r *ExcelCreditRepository) GetCreditData() (map[string]*CreditData, error) 
 	today := time.Now().Format("2006-01-02")
 	creditData := make(map[string]*CreditData)
 
-	files, err := filepath.Glob(filepath.Join(r.filePath, fmt.Sprintf("daily_credit_reports_%s", today), "*.xlsx"))
+	files, err := filepath.Glob(filepath.Join(r.filePath, fmt.Sprintf("credit_reports_%s", today), "*.xlsx"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to find credit report files: %w", err)
 	}

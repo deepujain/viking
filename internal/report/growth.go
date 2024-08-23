@@ -63,7 +63,7 @@ func (g *GrowthReportGenerator) Generate() error {
 	fmt.Println("Growth reportd computed.")
 
 	fmt.Println("Write growth report.")
-	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "daily_growth_report")
+	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "growth_report")
 	if err := g.writeGrowthReport(outputDir, report, tseMapping); err != nil {
 		return fmt.Errorf("error writing growth report: %w", err)
 	}
@@ -150,7 +150,7 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 		row++
 	}
 	// Ensure the output path has a valid extension
-	fileName := "daily_inventory_cost_report.xlsx"
+	fileName := "inventory_cost_report.xlsx"
 	outputPath := filepath.Join(outputDir, fileName)
 	excel.AdjustColumnWidths(f, sheetName)
 	return f.SaveAs(outputPath)

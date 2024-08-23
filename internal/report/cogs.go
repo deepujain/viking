@@ -143,7 +143,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 		row++
 	}
 	excel.AdjustColumnWidths(f, sheetName)
-	fileName := "daily_inventory_cost_report.xlsx"
+	fileName := "inventory_cost_report.xlsx"
 	outputPath := filepath.Join(outputDir, fileName)
 	return f.SaveAs(outputPath)
 }
