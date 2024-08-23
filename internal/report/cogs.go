@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
@@ -67,7 +68,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
-	headers := []string{"Dealer Code", "Dealer Name", "TSE", "Total Inventory Cost(₹)", "Total Credit Due(₹)", "Cost-Credit Difference(₹)"}
+	headers := []string{"Dealer Code", "Dealer Name", "TSE", "Total Inventory Cost(₹)", "Total Credit Due(₹)", "Inventory Shortfall (₹)"}
 	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
 		return err
 	}
@@ -82,8 +83,23 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 			{Type: "right", Color: "000000", Style: 1},
 		},
 	})
-	row := 2
+
+	// Convert map to slice for sorting
+	inventorySlice := make([]*repository.InventoryData, 0, len(inventoryData))
 	for _, data := range inventoryData {
+		inventorySlice = append(inventorySlice, data)
+	}
+
+	// Sort by TSE and then by Cost-Credit Difference
+	sort.Slice(inventorySlice, func(i, j int) bool {
+		if inventorySlice[i].TSE == inventorySlice[j].TSE {
+			return inventorySlice[i].CostCreditDifference < inventorySlice[j].CostCreditDifference
+		}
+		return inventorySlice[i].TSE < inventorySlice[j].TSE
+	})
+
+	row := 2
+	for _, data := range inventorySlice {
 		cellData := []interface{}{
 			data.DealerCode,
 			data.DealerName,
