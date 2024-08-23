@@ -68,7 +68,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    - Generates separate Excel reports for each TSE and a report for missing TSE data
 3. COGS Report Generation
    - Calculates the total inventory cost for each retailer (store)
-   - Helps assess potential financial impact in case of flight risk
+   - Helps assess potential financial impact in case of flight risk by computing inventory shortfall
    - Provides insights for inventory management and risk assessment
 
 ## Prerequisites
