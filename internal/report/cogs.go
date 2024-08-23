@@ -73,7 +73,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 		return err
 	}
 	// Custom number format for Indian numbering
-	inrFormat := "#,##,##0.00"
+	inrFormat := "#,##,##0"
 	numberStyle, _ := f.NewStyle(&excelize.Style{
 		CustomNumFmt: &inrFormat, // Custom number format for Indian numbering
 		Border: []excelize.Border{
