@@ -40,9 +40,9 @@ func NewCOGSReportGenerator(cfg *config.Config) *COGSReportGenerator {
 func (g *COGSReportGenerator) Generate() error {
 	fmt.Println("Generating COGS report...")
 
-	inventoryData, err := g.inventoryRepo.GetInventoryData()
+	inventoryData, err := g.inventoryRepo.ComputeInventoryShortFall()
 	if err != nil {
-		return fmt.Errorf("error reading inventory data: %w", err)
+		return fmt.Errorf("error computing inventory short fall report. error: %w", err)
 	}
 
 	// Use priceData, tseMapping, and creditData in your COGS calculation logic here

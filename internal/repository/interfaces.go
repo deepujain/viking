@@ -11,7 +11,7 @@ type ProductPriceRepository interface {
 }
 
 type InventoryRepository interface {
-	GetInventoryData() (map[string]*InventoryData, error)
+	ComputeInventoryShortFall() (map[string]*InventoryData, error)
 }
 
 type CreditRepository interface {

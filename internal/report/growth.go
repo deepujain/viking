@@ -62,7 +62,7 @@ func (g *GrowthReportGenerator) Generate() error {
 
 	fmt.Println("Start computation of growth report.")
 	report := g.generateGrowthReport(mtdSOData, lmtdSOData, mtdSTData, lmtdSTData)
-	fmt.Println("Growth reportd computed.")
+	fmt.Println("Growth report computed.")
 
 	fmt.Println("Write growth report.")
 	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "growth_report")
