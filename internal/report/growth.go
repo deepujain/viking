@@ -9,6 +9,8 @@ import (
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
 	"viking-reports/pkg/excel"
+
+	"github.com/xuri/excelize/v2"
 )
 
 type GrowthReportGenerator struct {
@@ -122,7 +124,7 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
-	headers := []string{"Dealer Code", "Dealer Name", "TSE", "MTD SO", "LMTD SO", "Growth SO%", "MTD ST", "LMTD ST", "Growth ST%"}
+	headers := []string{"TSE", "Dealer Code", "Dealer Name", "MTD SO", "LMTD SO", "Growth SO %", "MTD ST", "LMTD ST", "Growth ST %"}
 	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
 		return err
 	}
@@ -135,9 +137,9 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 	row := 2
 	for _, entry := range report {
 		cellData := []interface{}{
+			tseMapping[entry.DealerCode],
 			entry.DealerCode,
 			entry.DealerName,
-			tseMapping[entry.DealerCode],
 			entry.MTDSO,
 			entry.LMTDSO,
 			entry.GrowthSOPct,
@@ -148,8 +150,69 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
 			return err
 		}
+
+		//Apply all kinds of styles
+		// Create a new style that inherits from numberStyle and adds background fill
+		redStyle, _ := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"FF0000"}, Pattern: 1}, // Light red background
+			Border: []excelize.Border{
+				{Type: "left", Color: "000000", Style: 1},
+				{Type: "top", Color: "000000", Style: 1},
+				{Type: "bottom", Color: "000000", Style: 1},
+				{Type: "right", Color: "000000", Style: 1},
+			},
+			Font: &excelize.Font{
+				Bold: true, // Set text to bold
+			},
+		})
+		// Create a new style that inherits from numberStyle and adds background fill
+		orangeStyle, _ := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"FFFF00"}, Pattern: 1}, // Light red background
+			Border: []excelize.Border{
+				{Type: "left", Color: "000000", Style: 1},
+				{Type: "top", Color: "000000", Style: 1},
+				{Type: "bottom", Color: "000000", Style: 1},
+				{Type: "right", Color: "000000", Style: 1},
+			},
+			Font: &excelize.Font{
+				Bold: true, // Set text to bold
+			},
+		})
+		// Create a new style that inherits from numberStyle and adds background fill
+		greenStyle, _ := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"00FF00"}, Pattern: 1}, // Light red background
+			Border: []excelize.Border{
+				{Type: "left", Color: "000000", Style: 1},
+				{Type: "top", Color: "000000", Style: 1},
+				{Type: "bottom", Color: "000000", Style: 1},
+				{Type: "right", Color: "000000", Style: 1},
+			},
+			Font: &excelize.Font{
+				Bold: true, // Set text to bold
+			},
+		})
+
+		// Apply background color based on GrowthSOPct
+		if entry.GrowthSOPct < -60 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("F%d", row), fmt.Sprintf("F%d", row), redStyle) // Assuming redStyle is defined
+		} else if entry.GrowthSOPct >= -59 && entry.GrowthSOPct < 0 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("F%d", row), fmt.Sprintf("F%d", row), orangeStyle) // Assuming orangeStyle is defined
+		} else if entry.GrowthSOPct > 0 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("F%d", row), fmt.Sprintf("F%d", row), greenStyle) // Assuming greenStyle is defined
+		}
+
+		// Apply background color based on GrowthSTPct
+		if entry.GrowthSTPct < -60 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("I%d", row), fmt.Sprintf("I%d", row), redStyle) // Assuming redStyle is defined
+		} else if entry.GrowthSTPct >= -59 && entry.GrowthSTPct < 0 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("I%d", row), fmt.Sprintf("I%d", row), orangeStyle) // Assuming orangeStyle is defined
+		} else if entry.GrowthSTPct > 0 {
+			f.SetCellStyle(sheetName, fmt.Sprintf("I%d", row), fmt.Sprintf("I%d", row), greenStyle) // Assuming greenStyle is defined
+		}
+
 		row++
 	}
+
 	// Ensure the output path has a valid extension
 	fileName := "inventory_growth_report.xlsx"
 	outputPath := filepath.Join(outputDir, fileName)

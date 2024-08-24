@@ -14,10 +14,10 @@ type GrowthData struct {
 	DealerName  string
 	MTDSO       int
 	LMTDSO      int
-	GrowthSOPct float64
+	GrowthSOPct int
 	MTDST       int
 	LMTDST      int
-	GrowthSTPct float64
+	GrowthSTPct int
 }
 
 type SellData struct {

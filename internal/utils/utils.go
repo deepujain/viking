@@ -13,9 +13,9 @@ func GenerateOutputPath(outputDir, filePrefix string) string {
 }
 
 // CalculateGrowthPercentage calculates the growth percentage between two values.
-func CalculateGrowthPercentage(current, previous float64) float64 {
+func CalculateGrowthPercentage(current, previous float64) int {
 	if previous == 0 {
 		return 0 // Avoid division by zero
 	}
-	return ((current - previous) / previous) * 100
+	return int(((current - previous) / previous) * 100) // Cast to int
 }
