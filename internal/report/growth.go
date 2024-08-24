@@ -20,7 +20,7 @@ type GrowthReportGenerator struct {
 func NewGrowthReportGenerator(cfg *config.Config) *GrowthReportGenerator {
 	return &GrowthReportGenerator{
 		cfg:            cfg,
-		salesRepo:      repository.NewExcelSalesRepository(cfg.ReportFiles.GrowthReport.MTDSO), // Use one of the file paths
+		salesRepo:      repository.NewExcelSalesRepository(), // Use one of the file paths
 		tseMappingRepo: repository.NewExcelTSEMappingRepository(cfg.CommonFiles.TSEMapping),
 	}
 }
@@ -28,26 +28,26 @@ func NewGrowthReportGenerator(cfg *config.Config) *GrowthReportGenerator {
 func (g *GrowthReportGenerator) Generate() error {
 	fmt.Println("Generating Growth report...")
 
-	fmt.Println("Fetching month to date sell out report.")
-	mtdSOData, err := g.salesRepo.GetSellData("mtdSO")
+	fmt.Print("Fetching month to date sell out report")
+	mtdSOData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.MTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading MTD SO data: %w", err)
 	}
 
-	fmt.Println("Fetching last month to date sell out report.")
-	lmtdSOData, err := g.salesRepo.GetSellData("lmtdSO")
+	fmt.Print("Fetching last month to date sell out report")
+	lmtdSOData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.LMTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD SO data: %w", err)
 	}
 
-	fmt.Println("Fetching month to date sell through report.")
-	mtdSTData, err := g.salesRepo.GetSellData("mtdST")
+	fmt.Print("Fetching month to date sell through report")
+	mtdSTData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.MTDST)
 	if err != nil {
 		return fmt.Errorf("error reading MTD ST data: %w", err)
 	}
 
-	fmt.Println("Fetching last month to date sell through report.")
-	lmtdSTData, err := g.salesRepo.GetSellData("lmtdST")
+	fmt.Print("Fetching last month to date sell through report")
+	lmtdSTData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.LMTDST)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD ST data: %w", err)
 	}
@@ -91,6 +91,7 @@ func (g *GrowthReportGenerator) generateGrowthReport(mtdSOData, lmtdSOData, mtdS
 			LMTDST:      lmtdST.MTDS,
 			GrowthSTPct: utils.CalculateGrowthPercentage(float64(mtdST.MTDS), float64(lmtdST.MTDS)), // Convert to float64
 		}
+
 		report = append(report, reportEntry)
 	}
 

@@ -8,9 +8,7 @@ import (
 )
 
 type ExcelSalesRepository struct {
-	filePath string
 }
-
 type GrowthData struct {
 	DealerCode  string
 	DealerName  string
@@ -28,12 +26,13 @@ type SellData struct {
 	MTDS       int
 }
 
-func NewExcelSalesRepository(filePath string) *ExcelSalesRepository {
-	return &ExcelSalesRepository{filePath: filePath}
+func NewExcelSalesRepository() *ExcelSalesRepository {
+	return &ExcelSalesRepository{}
 }
 
-func (r *ExcelSalesRepository) GetSellData(fileType string) (map[string]*SellData, error) {
-	f, err := excelize.OpenFile(r.filePath)
+func (r *ExcelSalesRepository) GetSellData(salesFilePath string) (map[string]*SellData, error) {
+	fmt.Printf(" from %s \n", salesFilePath)
+	f, err := excelize.OpenFile(salesFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sales file: %w", err)
 	}
@@ -47,11 +46,19 @@ func (r *ExcelSalesRepository) GetSellData(fileType string) (map[string]*SellDat
 
 	dealerCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Code")
 	if err != nil {
-		return nil, err
+		// Try with "toDealerCode" if "Dealer Code" is not found
+		dealerCodeIdx, err = utils.GetColumnIndex(f, sheetName, "toDealerCode")
+		if err != nil {
+			return nil, err
+		}
 	}
 	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Name")
 	if err != nil {
-		return nil, err
+		// Try with "toDealerName" if "Dealer Name" is not found
+		dealerNameIdx, err = utils.GetColumnIndex(f, sheetName, "toDealerName")
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sellData := make(map[string]*SellData)
@@ -72,6 +79,7 @@ func (r *ExcelSalesRepository) GetSellData(fileType string) (map[string]*SellDat
 				MTDS:       1,
 			}
 		}
+
 	}
 
 	return sellData, nil
