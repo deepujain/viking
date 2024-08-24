@@ -214,7 +214,7 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 	}
 
 	// Ensure the output path has a valid extension
-	fileName := "inventory_growth_report.xlsx"
+	fileName := "sales_growth_report.xlsx"
 	outputPath := filepath.Join(outputDir, fileName)
 	excel.AdjustColumnWidths(f, sheetName)
 	return f.SaveAs(outputPath)
