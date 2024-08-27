@@ -40,36 +40,46 @@ func NewCOGSReportGenerator(cfg *config.Config) *COGSReportGenerator {
 func (g *COGSReportGenerator) Generate() error {
 	fmt.Println("Generating COGS report...")
 
-	inventoryData, err := g.inventoryRepo.ComputeInventoryShortFall()
+	inventoryShortFall, err := g.inventoryRepo.ComputeInventoryShortFall()
 	if err != nil {
 		return fmt.Errorf("error computing inventory short fall report. error: %w", err)
 	}
 
-	// Use priceData, tseMapping, and creditData in your COGS calculation logic here
+	//Compute material model count
+	materialModelCount, err := g.inventoryRepo.ComputeMaterialModelCount()
+	if err != nil {
+		return fmt.Errorf("error computing material model count: %w", err)
+	}
 
-	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "inventory_cost_report")
-	if err := g.writeInventoryReport(outputDir, inventoryData); err != nil {
+	// Use priceData, tseMapping, and creditData in your COGS calculation logic here
+	reportFile := excel.NewFile()
+
+	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "inventory_report")
+	if err := g.writeInventoryReport(reportFile, outputDir, inventoryShortFall); err != nil {
 		return fmt.Errorf("error writing inventory report: %w", err)
 	}
 
+	if err := g.writeMaterialModelCountReport(reportFile, outputDir, materialModelCount); err != nil {
+		return fmt.Errorf("error writing inventory report: %w", err)
+	}
 	fmt.Printf("COGS report generated successfully: %s\n", outputDir)
 	return nil
 }
 
-func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryData map[string]*repository.InventoryData) error {
-	f := excel.NewFile()
-	sheetName := "Inventory Report"
+func (g *COGSReportGenerator) writeInventoryReport(f *excelize.File, outputDir string, inventoryShortFallData map[string]*repository.InventoryShortFallRepo) error {
+	inventoryShortFallSheet := "Inventory ShortFall"
 	// Create a new sheet
-	if _, err := f.NewSheet(sheetName); err != nil {
+	if _, err := f.NewSheet(inventoryShortFallSheet); err != nil {
 		return fmt.Errorf("error creating new sheet: %w", err)
 	}
+
 	f.DeleteSheet("Sheet1")
 	if err := os.MkdirAll(outputDir, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
 	headers := []string{"Dealer Code", "Dealer Name", "TSE", "Total Inventory Cost(₹)", "Total Credit Due(₹)", "Inventory Shortfall (₹)"}
-	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
+	if err := excel.WriteHeaders(f, inventoryShortFallSheet, headers); err != nil {
 		return err
 	}
 	// Custom number format for Indian numbering
@@ -100,8 +110,8 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 	})
 
 	// Convert map to slice for sorting
-	inventorySlice := make([]*repository.InventoryData, 0, len(inventoryData))
-	for _, data := range inventoryData {
+	inventorySlice := make([]*repository.InventoryShortFallRepo, 0, len(inventoryShortFallData))
+	for _, data := range inventoryShortFallData {
 		inventorySlice = append(inventorySlice, data)
 	}
 
@@ -123,7 +133,7 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 			data.TotalCreditDue,
 			data.InventoryShortfall,
 		}
-		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
+		if err := excel.WriteRow(f, inventoryShortFallSheet, row, cellData); err != nil {
 			return err
 		}
 
@@ -136,14 +146,80 @@ func (g *COGSReportGenerator) writeInventoryReport(outputDir string, inventoryDa
 			} else {
 				style = numberStyle // Use numberStyle for non-negative values
 			}
-			if err := f.SetCellStyle(sheetName, cell, cell, style); err != nil {
+			if err := f.SetCellStyle(inventoryShortFallSheet, cell, cell, style); err != nil {
 				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 			}
 		}
 		row++
 	}
+	excel.AdjustColumnWidths(f, inventoryShortFallSheet)
+	fileName := "inventory_report.xlsx"
+	outputPath := filepath.Join(outputDir, fileName)
+	return f.SaveAs(outputPath)
+}
+
+func (g *COGSReportGenerator) writeMaterialModelCountReport(f *excelize.File, outputDir string, materialModelCount map[string]*repository.ModelCountRepo) error {
+	sheetName := "Material Model Count"
+	if _, err := f.NewSheet(sheetName); err != nil {
+		return fmt.Errorf("error creating new sheet for material model count: %w", err)
+	}
+	f.DeleteSheet("Sheet1")
+
+	headers := []string{"Dealer Code", "Dealer Name", "Material Code", "SPU Name", "Color", "SKU Spec", "Product Type", "Count"}
+	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
+		return err
+	}
+
+	// Convert map to slice for sorting
+	materialSlice := make([]*repository.ModelCountRepo, 0, len(materialModelCount))
+	for _, data := range materialModelCount {
+		materialSlice = append(materialSlice, data)
+	}
+
+	// Sort by Count in descending order
+	sort.Slice(materialSlice, func(i, j int) bool {
+		return materialSlice[i].Count > materialSlice[j].Count
+	})
+
+	// Custom number format for Indian numbering
+	numberFormat := "0"
+	numberStyle, _ := f.NewStyle(&excelize.Style{
+		CustomNumFmt: &numberFormat, // Custom number format for Indian numbering
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+	})
+
+	row := 2
+	for _, data := range materialSlice {
+		cellData := []interface{}{
+			data.DealerCode,
+			data.DealerName,
+			data.MaterialCode,
+			data.SPUName,
+			data.Color,
+			data.SKUSpec,
+			data.ProductType,
+			data.Count, // Count
+		}
+		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
+			return err
+		}
+
+		// Apply number style to numeric columns (only for Material Code)
+		cell := fmt.Sprintf("%s%d", "C", row) // Column C for Material Code
+		if err := f.SetCellStyle(sheetName, cell, cell, numberStyle); err != nil {
+			return fmt.Errorf("error setting style for cell %s: %w", cell, err)
+		}
+
+		row++
+	}
+
 	excel.AdjustColumnWidths(f, sheetName)
-	fileName := "inventory_cost_report.xlsx"
+	fileName := "inventory_report.xlsx"
 	outputPath := filepath.Join(outputDir, fileName)
 	return f.SaveAs(outputPath)
 }

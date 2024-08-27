@@ -18,13 +18,25 @@ type ExcelInventoryRepository struct {
 	tseMapping map[string]string
 }
 
-type InventoryData struct {
+type InventoryShortFallRepo struct {
 	DealerCode         string
 	DealerName         string
 	TotalInventoryCost float64
 	TotalCreditDue     float64
 	TSE                string
 	InventoryShortfall float64
+}
+
+type ModelCountRepo struct {
+	DealerCode   string
+	DealerName   string
+	MaterialCode int
+	SPUName      string
+	Color        string
+	SKUSpec      string
+	ProductType  string
+	TSE          string
+	Count        int
 }
 
 func NewExcelInventoryRepository(filePath string, priceData map[string]float64, tseMapping map[string]string) *ExcelInventoryRepository {
@@ -35,7 +47,7 @@ func NewExcelInventoryRepository(filePath string, priceData map[string]float64, 
 	}
 }
 
-func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*InventoryData, error) {
+func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*InventoryShortFallRepo, error) {
 	fmt.Printf("Compute Inventory and shortfall for all retailers using %s \n", r.filePath)
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
@@ -63,7 +75,7 @@ func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*Inve
 		return nil, err
 	}
 
-	inventoryData := make(map[string]*InventoryData)
+	inventoryData := make(map[string]*InventoryShortFallRepo)
 	retailerCodeToCreditMap, _ := r.GetTotalCreditFromReports()
 	for _, row := range rows[1:] {
 		materialCode := row[materialCodeIdx]
@@ -78,7 +90,7 @@ func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*Inve
 		if data, exists := inventoryData[dealerCode]; exists {
 			data.TotalInventoryCost += netLandingCost
 		} else {
-			inventoryData[dealerCode] = &InventoryData{
+			inventoryData[dealerCode] = &InventoryShortFallRepo{
 				DealerCode:         dealerCode,
 				DealerName:         dealerName,
 				TSE:                r.tseMapping[dealerCode],
@@ -159,4 +171,87 @@ func (r *ExcelInventoryRepository) GetTotalCreditFromReports() (map[string]float
 	}
 
 	return creditData, nil
+}
+
+func (r *ExcelInventoryRepository) ComputeMaterialModelCount() (map[string]*ModelCountRepo, error) {
+	fmt.Printf("Computing material model count for all retailers using %s \n", r.filePath)
+	f, err := excelize.OpenFile(r.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inventory file: %w", err)
+	}
+	defer f.Close()
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows: %w", err)
+	}
+
+	materialCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Material Code")
+	if err != nil {
+		return nil, err
+	}
+	dealerCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Code")
+	if err != nil {
+		return nil, err
+	}
+	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Name")
+	if err != nil {
+		return nil, err
+	}
+	spuNameIdx, err := utils.GetColumnIndex(f, sheetName, "SPU Name")
+	if err != nil {
+		return nil, err
+	}
+	colorIdx, err := utils.GetColumnIndex(f, sheetName, "Color")
+	if err != nil {
+		return nil, err
+	}
+	skuSpecIdx, err := utils.GetColumnIndex(f, sheetName, "SKU Spec")
+	if err != nil {
+		return nil, err
+	}
+	productTypeIdx, err := utils.GetColumnIndex(f, sheetName, "Product Type")
+	if err != nil {
+		return nil, err
+	}
+
+	distributorNameIdx, err := utils.GetColumnIndex(f, sheetName, "Area Name")
+	if err != nil {
+		return nil, err
+	}
+
+	materialCount := make(map[string]*ModelCountRepo)
+	for _, row := range rows[1:] {
+		materialCode := row[materialCodeIdx]
+		dealerCode := row[dealerCodeIdx]
+		dealerName := row[dealerNameIdx]
+
+		if materialCode == "" {
+			continue
+		}
+
+		if dealerCode == "" {
+			dealerName = row[distributorNameIdx]
+		}
+
+		if data, exists := materialCount[materialCode]; exists {
+			data.Count += 1 // Increment count for existing dealer
+		} else {
+			materialCodeInt, _ := strconv.Atoi(materialCode)
+			materialCount[materialCode] = &ModelCountRepo{
+				DealerCode:   dealerCode,
+				DealerName:   dealerName,
+				MaterialCode: materialCodeInt,
+				SPUName:      row[spuNameIdx],
+				Color:        row[colorIdx],
+				SKUSpec:      row[skuSpecIdx],
+				ProductType:  row[productTypeIdx],
+				Count:        1, // Initialize count
+				TSE:          r.tseMapping[dealerCode],
+			}
+		}
+	}
+
+	return materialCount, nil
 }

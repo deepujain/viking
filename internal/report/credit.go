@@ -68,7 +68,7 @@ func (g *CreditReportGenerator) Generate() error {
 	return nil
 }
 
-func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCredit map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryData) error {
+func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCredit map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryShortFallRepo) error {
 	totalDealerCreditWithTSE := make(map[string]map[string]map[string]interface{})
 	totalDealerCreditMissingTSE := make(map[string]map[string]interface{})
 
@@ -101,7 +101,7 @@ func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCre
 	return nil
 }
 
-func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, data map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryData) error {
+func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, data map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryShortFallRepo) error {
 	f := excel.NewFile()
 	sheetName := "Credit Report"
 	// Create a new sheet
