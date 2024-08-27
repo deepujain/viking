@@ -84,6 +84,9 @@ func AdjustColumnWidths(f *excelize.File, sheetName string) {
 				maxWidth = len(cell)
 			}
 		}
-		f.SetColWidth(sheetName, string(rune('A'+i)), string(rune('A'+i)), float64(maxWidth)+2)
+		// Reduce the width by 10%
+		finalWidth := float64(maxWidth) * 0.8
+
+		f.SetColWidth(sheetName, string(rune('A'+i)), string(rune('A'+i)), finalWidth+2)
 	}
 }

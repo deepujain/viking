@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
@@ -134,6 +135,11 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 	}
 
 	row := 2
+	inventoryShortfalls := make([]struct {
+		Credit    map[string]interface{}
+		Shortfall float64
+	}, 0)
+
 	for _, retailerCredit := range data {
 		inventoryCost := 0.0
 		if dealerData, exists := inventoryData[retailerCredit["Retailer Code"].(string)]; exists { // Fetch inventory cost using retailer code
@@ -141,7 +147,28 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 		} else {
 			fmt.Printf("Inventory Cost missing for dealer '%s' !\n", retailerCredit["Retailer Code"])
 		}
-		inventoryShortFall := retailerCredit["Total Credit"].(float64) - inventoryCost
+		inventoryShortFall := inventoryCost - retailerCredit["Total Credit"].(float64)
+
+		// Store the retailer credit and its shortfall
+		inventoryShortfalls = append(inventoryShortfalls, struct {
+			Credit    map[string]interface{}
+			Shortfall float64
+		}{Credit: retailerCredit, Shortfall: inventoryShortFall})
+	}
+
+	// Sort by inventoryShortFall (ascending)
+	sort.Slice(inventoryShortfalls, func(i, j int) bool {
+		return inventoryShortfalls[i].Shortfall < inventoryShortfalls[j].Shortfall
+	})
+
+	// Write sorted data to the sheet
+	for _, item := range inventoryShortfalls {
+		retailerCredit := item.Credit
+		inventoryShortFall := item.Shortfall
+		inventoryCost := 0.0
+		if dealerData, exists := inventoryData[retailerCredit["Retailer Code"].(string)]; exists {
+			inventoryCost = dealerData.TotalInventoryCost
+		}
 		cellData := []interface{}{
 			retailerCredit["Retailer Code"],
 			retailerCredit["Retailer Name"],
@@ -151,21 +178,25 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 			retailerCredit["22-30 Days"],
 			retailerCredit["31+ Days"],
 			retailerCredit["Total Credit"],
-			inventoryCost,
+			inventoryCost, // Ensure inventoryCost is defined before use
 			inventoryShortFall,
 			retailerCredit["TSE"],
 		}
-		// Ensure numeric values are of type float64
+
+		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
+			return err
+		}
+
+		//Apply all kinds of styles
+
+		// Ensure numeric values are of type float64 to all numeric columns
 		for i := 2; i <= 9; i++ { // Columns C (2) to I (7)
 			if val, ok := retailerCredit[headers[i]].(float64); ok {
 				cellData[i-2] = val // Replace with float64 value
 			}
 		}
-		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
-			return err
-		}
 
-		// Apply number style to numeric columns (0-7 Days to Total Credit)
+		// Apply number style to all numeric columns
 		for col := 2; col <= 9; col++ { // Columns C (3) to I (8)
 			cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
 			if err := f.SetCellStyle(sheetName, cell, cell, numberStyle); err != nil {
@@ -173,9 +204,9 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 			}
 		}
 
-		// Create a new style that inherits from numberStyle and adds background fill
+		// Create a red Style
 		redStyle, err := f.NewStyle(&excelize.Style{
-			Fill:         excelize.Fill{Type: "pattern", Color: []string{"FF0000"}, Pattern: 1}, // Light red background
+			Fill:         excelize.Fill{Type: "pattern", Color: []string{"FFCCCC"}, Pattern: 1}, // Light red background
 			CustomNumFmt: &inrFormat,                                                            // Custom number format for Indian numbering
 			Border: []excelize.Border{
 				{Type: "left", Color: "000000", Style: 1},
@@ -198,12 +229,21 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 			}
 		}
+
+		// Apply redStyle to Inventory Shortfall cells if negative
+		if inventoryShortFall < 0 {
+			cell := fmt.Sprintf("J%d", row) // Column J for Inventory Shortfall
+			if err := f.SetCellStyle(sheetName, cell, cell, redStyle); err != nil {
+				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
+			}
+		}
 		row++
 	}
 
 	// Calculate totals
 	total := make([]float64, 8) // For columns 0-7 Days to Total Credit
-	for _, retailerCredit := range data {
+	for _, item := range inventoryShortfalls {
+		retailerCredit := item.Credit
 		total[0] += retailerCredit["0-7 Days"].(float64)
 		total[1] += retailerCredit["8-14 Days"].(float64)
 		total[2] += retailerCredit["15-21 Days"].(float64)
