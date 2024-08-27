@@ -154,7 +154,7 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 		//Apply all kinds of styles
 		// Create a new style that inherits from numberStyle and adds background fill
 		redStyle, _ := f.NewStyle(&excelize.Style{
-			Fill: excelize.Fill{Type: "pattern", Color: []string{"FFCCCC"}, Pattern: 1}, // Light red background
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"FF9999"}, Pattern: 1}, // Light red background
 			Border: []excelize.Border{
 				{Type: "left", Color: "000000", Style: 1},
 				{Type: "top", Color: "000000", Style: 1},

@@ -206,7 +206,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 
 		// Create a red Style
 		redStyle, err := f.NewStyle(&excelize.Style{
-			Fill:         excelize.Fill{Type: "pattern", Color: []string{"FFCCCC"}, Pattern: 1}, // Light red background
+			Fill:         excelize.Fill{Type: "pattern", Color: []string{"FF9999"}, Pattern: 1}, // Light red background
 			CustomNumFmt: &inrFormat,                                                            // Custom number format for Indian numbering
 			Border: []excelize.Border{
 				{Type: "left", Color: "000000", Style: 1},
