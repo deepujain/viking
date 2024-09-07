@@ -49,8 +49,8 @@ func Load() (*Config, error) {
 		DataDir:   dataDir,
 		OutputDir: outputDir,
 		CommonFiles: CommonFiles{
-			DealerInfo: filepath.Join(dataDir, "common", "VIKING'S - DEALER Credit Period LIST.xlsx"),
-			TSEMapping: filepath.Join(dataDir, "common", "VIKING'S - DEALER Credit Period LIST.xlsx"),
+			DealerInfo: filepath.Join(dataDir, "common", "Retailer Metadata.xlsx"),
+			TSEMapping: filepath.Join(dataDir, "common", "Retailer Metadata.xlsx"),
 			PriceList:  filepath.Join(dataDir, "common", "ProductPriceList.xlsx"),
 		},
 		ReportFiles: ReportFiles{

@@ -54,6 +54,7 @@ func (g *CreditReportGenerator) Generate() error {
 	}
 
 	retailerCredit := g.creditRepo.AggregateCreditByRetailer(bills, tseMapping, retailerNameToCodeMap)
+
 	inventoryData, err := g.inventoryRepo.ComputeInventoryShortFall()
 	if err != nil { // Check for error
 		return fmt.Errorf("error computing inventory shortfall: %w", err) // Handle the error
