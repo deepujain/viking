@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"viking-reports/internal/config"
 	"viking-reports/internal/report"
@@ -21,5 +22,5 @@ func main() {
 	if err := generator.Generate(); err != nil {
 		log.Fatalf("Failed to generate Credit report: %v", err)
 	}
-
+	time.Sleep(5 * time.Second) // {{ edit_2 }}
 }
