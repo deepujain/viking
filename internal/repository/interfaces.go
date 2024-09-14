@@ -24,3 +24,7 @@ type CreditRepository interface {
 type SalesRepository interface {
 	GetSellData(fileType string) (map[string]*SellData, error)
 }
+
+type PriceListRepository interface {
+	GetPriceListData() ([]PriceListRow, error)
+}
