@@ -26,17 +26,21 @@ func NewPriceListGenerator(cfg *config.Config) *PriceListGenerator {
 }
 
 func (p *PriceListGenerator) Generate() error {
+	currentMonthYear := time.Now().Format("January 2006")
+	fmt.Printf("Generating flat price list of SKUs for the month of %s \n", currentMonthYear)
+	fmt.Println()
+
 	priceData, err := p.priceListRepo.GetPriceListData()
 	if err != nil {
 		return err
 	}
-	currentMonth := time.Now().Format("January")
-	fmt.Printf("Generating flat price list of SKUs for the month of %s \n", currentMonth)
+	fmt.Println()
+	fmt.Printf("Price list generated successfully, total SKUs: %d\n", len(priceData))
 
 	outputDir := utils.GenerateOutputPath(p.cfg.OutputDir, "price_list")
 	p.writePriceList(outputDir, priceData)
 
-	fmt.Printf("Price list generated successfully in: %s\n", outputDir)
+	fmt.Printf("Price list written successfully in: %s\n", outputDir)
 	return nil
 }
 

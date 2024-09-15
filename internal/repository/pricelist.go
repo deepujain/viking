@@ -33,6 +33,8 @@ func NewExcelPriceListRepository(filePath string) *ExcelPriceListRepository {
 }
 
 func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
+	fmt.Println("Read the price list given by zonal distributor from ", r.filePath)
+	fmt.Println()
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
 		return nil, err
