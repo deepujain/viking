@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
@@ -29,6 +30,8 @@ func (p *PriceListGenerator) Generate() error {
 	if err != nil {
 		return err
 	}
+	currentMonth := time.Now().Format("January")
+	fmt.Printf("Generating flat price list of SKUs for the month of %s \n", currentMonth)
 
 	outputDir := utils.GenerateOutputPath(p.cfg.OutputDir, "price_list")
 	p.writePriceList(outputDir, priceData)
