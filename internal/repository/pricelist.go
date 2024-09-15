@@ -10,7 +10,8 @@ import (
 )
 
 type ExcelPriceListRepository struct {
-	filePath string
+	zdPriceList         string
+	realMeInventoryList string
 }
 
 type PriceListData struct {
@@ -29,14 +30,72 @@ type PriceListRow struct {
 	Mrp     int
 }
 
-func NewExcelPriceListRepository(filePath string) *ExcelPriceListRepository {
-	return &ExcelPriceListRepository{filePath: filePath}
+type InventoryDataRow struct {
+	MatrialCode string
+	Model       string
+	SKUSpec     string
+}
+
+func NewExcelPriceListRepository(filePath string, inventoryReportPath string) *ExcelPriceListRepository {
+	return &ExcelPriceListRepository{zdPriceList: filePath, realMeInventoryList: inventoryReportPath}
+}
+
+func (r *ExcelPriceListRepository) GetMaterialCodeMap() (map[string]string, error) {
+	fmt.Printf("Compute material code for SKUs using %s\n", r.realMeInventoryList)
+
+	f, err := excelize.OpenFile(r.realMeInventoryList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inventory file: %w", err)
+	}
+	defer f.Close()
+	fmt.Println("Fetching today's stock inventory data for each retailer.")
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows: %w", err)
+	}
+
+	materialCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Material Code")
+	if err != nil {
+		return nil, err
+	}
+	spuNameIdx, err := utils.GetColumnIndex(f, sheetName, "SPU Name")
+	if err != nil {
+		return nil, err
+	}
+	colorIdx, err := utils.GetColumnIndex(f, sheetName, "Color")
+	if err != nil {
+		return nil, err
+	}
+	skuSpecIdx, err := utils.GetColumnIndex(f, sheetName, "SKU Spec")
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map to store unique Material Codes
+	materialCodeMap := make(map[string]string)
+	for _, row := range rows[1:] { // Skip header row
+		if len(row) >= 4 { // Ensure we have enough columns
+			spuName := row[spuNameIdx]
+			color := row[colorIdx]
+			skuSpec := row[skuSpecIdx]
+			materialCode := row[materialCodeIdx]
+
+			// Create a unique key based on SPU Name, Color, and SKU Spec
+			key := fmt.Sprintf("%s|%s|%s", spuName, color, skuSpec)
+			// Store the Material Code in the map
+			materialCodeMap[strings.ToLower(key)] = materialCode
+		}
+	}
+
+	// Return the map and results
+	return materialCodeMap, nil
 }
 
 func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
-	fmt.Println("Read the price list given by zonal distributor from ", r.filePath)
-	fmt.Println()
-	f, err := excelize.OpenFile(r.filePath)
+	fmt.Println("Read the price list given by zonal distributor from ", r.zdPriceList)
+	f, err := excelize.OpenFile(r.zdPriceList)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +244,7 @@ func splitColorsInResults(results []PriceListRow) []PriceListRow {
 		// Check if the color is in the known multi-word colors map
 
 		if splitColors, exists := multiWordColors[row.Color]; exists {
-			fmt.Println("Found row with no seperator between model colors:", row.Color)
+			//fmt.Println("Found row with no seperator between model colors:", row.Color)
 			// If found, split into multiple rows based on the colors provided
 			for _, color := range splitColors {
 				newRow := row

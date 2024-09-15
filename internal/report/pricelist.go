@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
@@ -21,30 +22,35 @@ type PriceListGenerator struct {
 func NewPriceListGenerator(cfg *config.Config) *PriceListGenerator {
 	return &PriceListGenerator{
 		cfg:           cfg,
-		priceListRepo: repository.NewExcelPriceListRepository(cfg.ReportFiles.PriceListFile),
+		priceListRepo: repository.NewExcelPriceListRepository(cfg.ReportFiles.PriceListFile, cfg.ReportFiles.InventoryReport),
 	}
 }
 
 func (p *PriceListGenerator) Generate() error {
 	currentMonthYear := time.Now().Format("January 2006")
+
 	fmt.Printf("Generating flat price list of SKUs for the month of %s \n", currentMonthYear)
 	fmt.Println()
-
 	priceData, err := p.priceListRepo.GetPriceListData()
 	if err != nil {
 		return err
 	}
-	fmt.Println()
 	fmt.Printf("Price list generated successfully, total SKUs: %d\n", len(priceData))
+	fmt.Printf("Read inventory data to generate material code for the month of %s \n", currentMonthYear)
+
+	materialCodeMap, err := p.priceListRepo.GetMaterialCodeMap()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Material code map generated successfully, Size: %d\n", len(materialCodeMap))
 
 	outputDir := utils.GenerateMonthlyOutputPath(p.cfg.OutputDir, "price_list")
-	p.writePriceList(outputDir, priceData)
-
+	p.writePriceList(outputDir, priceData, materialCodeMap)
 	fmt.Printf("Price list written successfully in: %s\n", outputDir)
 	return nil
 }
 
-func (p *PriceListGenerator) writePriceList(outputDir string, priceData []repository.PriceListRow) error {
+func (p *PriceListGenerator) writePriceList(outputDir string, priceData []repository.PriceListRow, materialCodeMap map[string]string) error {
 	f := excel.NewFile()
 	sheetName := "Price List"
 
@@ -74,13 +80,15 @@ func (p *PriceListGenerator) writePriceList(outputDir string, priceData []reposi
 	}
 
 	// Write headers
-	headers := []string{"Type", "Model", "Color", "Variant", "NLC", "MOP", "MRP"} // Adjust headers as needed
+	headers := []string{"Type", "Model", "Color", "Variant", "NLC", "MOP", "MRP", "Material Code"} // Adjust headers as needed
 	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
 		return err
 	}
 
 	// Write data rows
 	for rowIndex, item := range priceData {
+		// Create a unique key based on item.Model, item.Color, and combined Storage and Memory
+		key := fmt.Sprintf("%s|%s|%s", item.Model, item.Color, (item.Storage + " " + item.Memory))
 		cellData := []interface{}{
 			item.Type,
 			item.Model,
@@ -89,6 +97,7 @@ func (p *PriceListGenerator) writePriceList(outputDir string, priceData []reposi
 			item.NLC,
 			item.Mop,
 			item.Mrp,
+			materialCodeMap[strings.ToLower(key)],
 		}
 
 		if err := excel.WriteRow(f, sheetName, rowIndex+2, cellData); err != nil {

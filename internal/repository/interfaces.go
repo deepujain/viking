@@ -27,4 +27,5 @@ type SalesRepository interface {
 
 type PriceListRepository interface {
 	GetPriceListData() ([]PriceListRow, error)
+	GetMaterialCodeMap() (map[string]string, error)
 }
