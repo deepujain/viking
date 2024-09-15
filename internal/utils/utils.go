@@ -12,6 +12,13 @@ func GenerateOutputPath(outputDir, filePrefix string) string {
 	return filepath.Join(outputDir, fileName)
 }
 
+// ... existing code ...
+func GenerateMonthlyOutputPath(outputDir, filePrefix string) string {
+	today := time.Now().Format("2006-Jan") // Changed format to YYYY-MM
+	fileName := fmt.Sprintf("%s_%s/", filePrefix, today)
+	return filepath.Join(outputDir, fileName)
+}
+
 // CalculateGrowthPercentage calculates the growth percentage between two values.
 func CalculateGrowthPercentage(current, previous float64) int {
 	if previous == 0 {

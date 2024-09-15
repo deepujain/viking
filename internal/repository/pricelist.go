@@ -19,13 +19,14 @@ type PriceListData struct {
 }
 
 type PriceListRow struct {
-	Type     string
-	Model    string
-	Color    string
-	Capacity string
-	NLC      int
-	Mop      int
-	Mrp      int
+	Type    string
+	Model   string
+	Color   string
+	Memory  string
+	Storage string
+	NLC     int
+	Mop     int
+	Mrp     int
 }
 
 func NewExcelPriceListRepository(filePath string) *ExcelPriceListRepository {
@@ -104,7 +105,17 @@ func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
 				lastType = row[typeIndx]
 			}
 			if row[1] != "" {
-				lastModel = row[modelIndx]
+				lastModel = strings.ToLower(row[modelIndx])
+				// Check if model starts with "REALME C" and remove the second space
+				if strings.HasPrefix(lastModel, "realme c") {
+					parts := strings.Fields(lastModel)
+					if len(parts) > 2 {
+						lastModel = parts[0] + " " + parts[1] + strings.Join(parts[2:], "")
+					}
+				}
+				if !strings.HasPrefix(lastModel, "realme") { // Add REALME prefix if missing
+					lastModel = "realme " + lastModel
+				}
 			}
 			if row[2] != "" {
 				lastColor = row[colorIdx]
@@ -113,20 +124,33 @@ func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
 			// Use last seen values if current row is missing
 			model := lastModel
 			color := lastColor
+
 			capacity := row[capacityIdx]
+			// Split capacity into memory and storage
+			capacityParts := strings.Split(strings.TrimSpace(row[capacityIdx]), "+")
+			var memory, storage string
+			if len(capacityParts) == 2 {
+				memory = strings.TrimSpace(capacityParts[0])
+				storage = strings.TrimSpace(capacityParts[1])
+			} else {
+				memory = capacity // Fallback if not in expected format
+				storage = ""
+			}
+
 			dlrPrice, _ := strconv.Atoi(row[dlrPriceIdx])
 			mop, _ := strconv.Atoi(row[mopIdx])
 			mrp, _ := strconv.Atoi(row[mrpIdx])
 
 			// Create a new PriceListRow struct and append to results
 			priceListRow := PriceListRow{
-				Type:     lastType,
-				Model:    model,
-				Color:    color,
-				Capacity: capacity,
-				NLC:      dlrPrice,
-				Mop:      mop,
-				Mrp:      mrp,
+				Type:    lastType,
+				Model:   model,
+				Color:   color,
+				Memory:  memory,
+				Storage: storage,
+				NLC:     dlrPrice,
+				Mop:     mop,
+				Mrp:     mrp,
 			}
 			results = append(results, priceListRow)
 		}

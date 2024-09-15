@@ -37,7 +37,7 @@ func (p *PriceListGenerator) Generate() error {
 	fmt.Println()
 	fmt.Printf("Price list generated successfully, total SKUs: %d\n", len(priceData))
 
-	outputDir := utils.GenerateOutputPath(p.cfg.OutputDir, "price_list")
+	outputDir := utils.GenerateMonthlyOutputPath(p.cfg.OutputDir, "price_list")
 	p.writePriceList(outputDir, priceData)
 
 	fmt.Printf("Price list written successfully in: %s\n", outputDir)
@@ -85,7 +85,7 @@ func (p *PriceListGenerator) writePriceList(outputDir string, priceData []reposi
 			item.Type,
 			item.Model,
 			item.Color,
-			item.Capacity,
+			item.Storage + " " + item.Memory,
 			item.NLC,
 			item.Mop,
 			item.Mrp,
