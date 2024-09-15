@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"viking-reports/internal/utils"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -45,32 +46,75 @@ func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
 		return nil, err
 	}
 
-	var lastType, lastModel, lastColor string // Track last seen values
-
+	var lastType, lastModel, lastColor string                                       // Track last seen values
+	var typeIndx, modelIndx, colorIdx, capacityIdx, dlrPriceIdx, mopIdx, mrpIdx int // Track indices
+	headerRow := 1
 	for i, row := range rows {
-		if i == 0 || i == 1 {
+
+		if i == headerRow {
 			// Skip header
+			// Log the headers for debugging
+			fmt.Println("Headers found:", row)
+
+			// Set up column indices from the second row (headers)
+			var err error
+			typeIndx, err = utils.GetHeaderIndex(f, sheetName, "TYPE", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for TYPE:", err)
+				return nil, err
+			}
+			modelIndx, err = utils.GetHeaderIndex(f, sheetName, "Model", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for Model:", err)
+				return nil, err
+			}
+			colorIdx, err = utils.GetHeaderIndex(f, sheetName, "COLOURS", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for COLOURS:", err)
+				return nil, err
+			}
+			capacityIdx, err = utils.GetHeaderIndex(f, sheetName, "Variant", headerRow) // Added index for capacity
+			if err != nil {
+				fmt.Println("Error retrieving index for Variant:", err)
+				return nil, err
+			}
+			dlrPriceIdx, err = utils.GetHeaderIndex(f, sheetName, "DLR PRICE", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for DLR PRICE:", err)
+				return nil, err
+			}
+			mopIdx, err = utils.GetHeaderIndex(f, sheetName, "MOP", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for MOP:", err)
+				return nil, err
+			}
+			mrpIdx, err = utils.GetHeaderIndex(f, sheetName, "MRP", headerRow)
+			if err != nil {
+				fmt.Println("Error retrieving index for MRP:", err)
+				return nil, err
+			}
+			// Skip to the next iteration to start processing data rows
 			continue
 		}
 		if len(row) >= 7 { // Ensure we have enough columns
 			// Check for merged values
 			if row[0] != "" {
-				lastType = row[0]
+				lastType = row[typeIndx]
 			}
 			if row[1] != "" {
-				lastModel = row[1]
+				lastModel = row[modelIndx]
 			}
 			if row[2] != "" {
-				lastColor = row[2]
+				lastColor = row[colorIdx]
 			}
 
 			// Use last seen values if current row is missing
 			model := lastModel
 			color := lastColor
-			capacity := row[3]
-			dlrPrice, _ := strconv.Atoi(row[4])
-			mop, _ := strconv.Atoi(row[5])
-			mrp, _ := strconv.Atoi(row[6])
+			capacity := row[capacityIdx]
+			dlrPrice, _ := strconv.Atoi(row[dlrPriceIdx])
+			mop, _ := strconv.Atoi(row[mopIdx])
+			mrp, _ := strconv.Atoi(row[mrpIdx])
 
 			// Create a new PriceListRow struct and append to results
 			priceListRow := PriceListRow{

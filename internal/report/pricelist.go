@@ -30,7 +30,7 @@ func (p *PriceListGenerator) Generate() error {
 		return err
 	}
 
-	outputDir := utils.GenerateOutputPath(p.cfg.OutputDir, "credit_reports")
+	outputDir := utils.GenerateOutputPath(p.cfg.OutputDir, "price_list")
 	p.writePriceList(outputDir, priceData)
 
 	fmt.Printf("Price list generated successfully in: %s\n", outputDir)
