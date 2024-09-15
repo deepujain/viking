@@ -31,7 +31,7 @@ type PriceListRow struct {
 }
 
 type InventoryDataRow struct {
-	MatrialCode string
+	MatrialCode int
 	Model       string
 	SKUSpec     string
 }
@@ -40,8 +40,8 @@ func NewExcelPriceListRepository(filePath string, inventoryReportPath string) *E
 	return &ExcelPriceListRepository{zdPriceList: filePath, realMeInventoryList: inventoryReportPath}
 }
 
-func (r *ExcelPriceListRepository) GetMaterialCodeMap() (map[string]string, error) {
-	fmt.Printf("Compute material code for SKUs using %s\n", r.realMeInventoryList)
+func (r *ExcelPriceListRepository) GetMaterialCodeMap() (map[string]int, error) {
+	fmt.Printf("\nCompute material code for SKUs using %s\n", r.realMeInventoryList)
 
 	f, err := excelize.OpenFile(r.realMeInventoryList)
 	if err != nil {
@@ -74,13 +74,13 @@ func (r *ExcelPriceListRepository) GetMaterialCodeMap() (map[string]string, erro
 	}
 
 	// Create a map to store unique Material Codes
-	materialCodeMap := make(map[string]string)
+	materialCodeMap := make(map[string]int)
 	for _, row := range rows[1:] { // Skip header row
 		if len(row) >= 4 { // Ensure we have enough columns
 			spuName := row[spuNameIdx]
 			color := row[colorIdx]
 			skuSpec := row[skuSpecIdx]
-			materialCode := row[materialCodeIdx]
+			materialCode, _ := strconv.Atoi(row[materialCodeIdx])
 
 			// Create a unique key based on SPU Name, Color, and SKU Spec
 			key := fmt.Sprintf("%s|%s|%s", spuName, color, skuSpec)

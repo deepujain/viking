@@ -28,9 +28,7 @@ func NewPriceListGenerator(cfg *config.Config) *PriceListGenerator {
 
 func (p *PriceListGenerator) Generate() error {
 	currentMonthYear := time.Now().Format("January 2006")
-
-	fmt.Printf("Generating flat price list of SKUs for the month of %s \n", currentMonthYear)
-	fmt.Println()
+	fmt.Printf("\nGenerating flat price list of SKUs for the month of %s \n", currentMonthYear)
 	priceData, err := p.priceListRepo.GetPriceListData()
 	if err != nil {
 		return err
@@ -46,11 +44,11 @@ func (p *PriceListGenerator) Generate() error {
 
 	outputDir := utils.GenerateMonthlyOutputPath(p.cfg.OutputDir, "price_list")
 	p.writePriceList(outputDir, priceData, materialCodeMap)
-	fmt.Printf("Price list written successfully in: %s\n", outputDir)
+	fmt.Printf("\nPrice list written successfully in: %s\n", outputDir)
 	return nil
 }
 
-func (p *PriceListGenerator) writePriceList(outputDir string, priceData []repository.PriceListRow, materialCodeMap map[string]string) error {
+func (p *PriceListGenerator) writePriceList(outputDir string, priceData []repository.PriceListRow, materialCodeMap map[string]int) error {
 	f := excel.NewFile()
 	sheetName := "Price List"
 
@@ -97,7 +95,7 @@ func (p *PriceListGenerator) writePriceList(outputDir string, priceData []reposi
 			item.NLC,
 			item.Mop,
 			item.Mrp,
-			materialCodeMap[strings.ToLower(key)],
+			fmt.Sprintf("%d", materialCodeMap[strings.ToLower(key)]),
 		}
 
 		if err := excel.WriteRow(f, sheetName, rowIndex+2, cellData); err != nil {
