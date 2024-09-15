@@ -65,7 +65,7 @@ func Load() (*Config, error) {
 				LMTDST: filepath.Join(dataDir, "growth_report", "LMTD-ST.xlsx"),
 			},
 			InventoryReport: filepath.Join(dataDir, "cogs_report", "DealerInventory.xlsx"),
-			PriceListFile:   filepath.Join(dataDir, "price_list", "PRICE LIST AS ON 02.09.2024.xlsx"),
+			PriceListFile:   filepath.Join(dataDir, "price_list", "ZD PRICE LIST.xlsx"),
 		},
 	}
 

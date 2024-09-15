@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -84,6 +86,73 @@ func (r *ExcelPriceListRepository) GetPriceListData() ([]PriceListRow, error) {
 		}
 	}
 
-	// Return the results array
-	return results, nil
+	// Post-process the results to split colors
+	return splitColorsInResults(results), nil
+	//return results, nil
+}
+
+// Helper function to process the results and split colors
+func splitColorsInResults(results []PriceListRow) []PriceListRow {
+	var finalResults []PriceListRow
+
+	// Known multi-word colors that should be split
+	multiWordColors := map[string][]string{
+		"SAFARI GREEN MARBLE BLACK":                   {"SAFARI GREEN", "MARBLE BLACK"},
+		"GREEN BLACK":                                 {"GREEN", "BLACK"},
+		"Sunny Oasis Dark Purple":                     {"Sunny Oasis", "Dark Purple"},
+		"TWILIGHT PURPLE WOODLAND GREEN":              {"TWILIGHT PURPLE", "WOODLAND GREEN"},
+		"NAVIGATOR BEIGE SUBMARINE BLUE":              {"NAVIGATOR BEIGE", "SUBMARINE BLUE"},
+		"NAVIGATOR BEIGE SUBMARINE BLUE EXPLORER RED": {"NAVIGATOR BEIGE", "SUBMARINE BLUE", "EXPLORER RED"},
+		"SPEED GREEN DARK PURPLE":                     {"SPEED GREEN", "DARK PURPLE"},
+		"VICTORY GOLD SPEED GREEN DARK PURPLE":        {"VICTORY GOLD", "SPEED GREEN", "DARK PURPLE"},
+		"MONET GOLD MONET PURPLE EMERALD GREEN":       {"MONET GOLD", "MONET PURPLE", "EMERALD GREEN"},
+		"MONET GOLD EMERALD GREEN":                    {"MONET GOLD", "EMERALD GREEN"},
+		"FLUID SILVER RAZOR GREEN":                    {"FLUID SILVER", "RAZOR GREEN"},
+	}
+
+	// Iterate through each result and split colors
+	for _, row := range results {
+		// Check if the color is in the known multi-word colors map
+
+		if splitColors, exists := multiWordColors[row.Color]; exists {
+			fmt.Println("Found row with no seperator between model colors:", row.Color)
+			// If found, split into multiple rows based on the colors provided
+			for _, color := range splitColors {
+				newRow := row
+				newRow.Color = color
+				finalResults = append(finalResults, newRow)
+			}
+		} else {
+			// For other colors, check if they need to be split by delimiters
+			colors := splitColorsByDelimiters(row.Color)
+			for _, color := range colors {
+				newRow := row
+				newRow.Color = color
+				finalResults = append(finalResults, newRow)
+			}
+		}
+	}
+
+	return finalResults
+}
+
+// Helper function to split colors based on known delimiters
+func splitColorsByDelimiters(color string) []string {
+	// Define known separators
+	separators := []string{"\n", "/", "\\", ":", ","}
+
+	// Iterate over each separator and split the color string
+	for _, sep := range separators {
+		if strings.Contains(color, sep) {
+			splitColors := strings.Split(color, sep)
+			// Trim whitespace from each part
+			for i := range splitColors {
+				splitColors[i] = strings.TrimSpace(splitColors[i])
+			}
+			return splitColors
+		}
+	}
+
+	// If no known separator is found, return the color as-is
+	return []string{color}
 }
