@@ -36,6 +36,31 @@ func WriteHeaders(f *excelize.File, sheetName string, headers []string) error {
 	return nil
 }
 
+// WriteHeaders writes the headers to the Excel sheet
+func WriteHeadersIdx(f *excelize.File, sheetName string, headers []string, headerIdx int) error {
+	headerStyle, err := f.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFFF00"}, Pattern: 1},
+		Font: &excelize.Font{Bold: true},
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create header style: %w", err)
+	}
+
+	for i, header := range headers {
+		cell := fmt.Sprintf("%s%d", string('A'+i), headerIdx)
+		f.SetCellValue(sheetName, cell, header)
+		f.SetCellStyle(sheetName, cell, cell, headerStyle)
+	}
+
+	return nil
+}
+
 // WriteRow writes a row of data to the Excel sheet
 func WriteRow(f *excelize.File, sheetName string, rowIndex int, data []interface{}) error {
 	borderStyle, _ := f.NewStyle(&excelize.Style{

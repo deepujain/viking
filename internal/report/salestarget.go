@@ -67,22 +67,36 @@ func (s *SalesTargetGenerator) Generate() error {
 	outputDir := utils.GenerateOutputPath(s.cfg.OutputDir, "sales_report")
 	// Invoke writeSalesReport for each category
 	fmt.Println("Write monthly sales of SMART PHONES for each retailer")
-	if err := s.writeSalesReport(reportFile, outputDir, smartPhoneSales, "SMART PHONES"); err != nil {
+	// Create a map for TSE overall targets
+	tseSmartPhoneSalesOverallTargets := map[string]int{
+		"Krishna Murthy": 2490,
+		"SATHISH":        1900,
+		"HARISH":         600,
+	}
+	if err := s.writeSalesReport(reportFile, outputDir, smartPhoneSales, tseSmartPhoneSalesOverallTargets, "SMART PHONES"); err != nil {
 		return fmt.Errorf("error writing smartphone sales report: %w", err)
 	}
+
 	fmt.Println("Write monthly sales of ACCESSORIES for each retailer")
-	if err := s.writeSalesReport(reportFile, outputDir, accessoriesSales, "ACCESSORIES"); err != nil {
+	// Create a map for TSE overall targets
+	tseAccessOverallTargets := map[string]int{
+		"Krishna Murthy": 1000,
+		"SATHISH":        800,
+		"HARISH":         600,
+	}
+	if err := s.writeSalesReport(reportFile, outputDir, accessoriesSales, tseAccessOverallTargets, "ACCESSORIES"); err != nil {
 		return fmt.Errorf("error writing accessories sales report: %w", err)
 	}
+
 	fmt.Println("Write monthly sales of OTHERS for each retailer")
-	if err := s.writeSalesReport(reportFile, outputDir, otherSales, "OTHERS"); err != nil {
+	if err := s.writeSalesReport(reportFile, outputDir, otherSales, tseSmartPhoneSalesOverallTargets, "OTHERS"); err != nil {
 		return fmt.Errorf("error writing other sales report: %w", err)
 	}
 	fmt.Printf("Sales report generated successfully for %s %d: %s \n", time.Now().Month().String(), time.Now().Year(), outputDir)
 	return nil
 }
 
-func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData, productType string) error {
+func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData, tseSalesTarget map[string]int, productType string) error {
 	salesReportSheet := productType
 	// Create a new sheet
 	if _, err := f.NewSheet(salesReportSheet); err != nil {
@@ -94,14 +108,111 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
-	headers := []string{"Dealer Code", "Dealer Name", "Sell Out", "Total Sales Value(₹)", "TSE"}
-	if err := excel.WriteHeaders(f, salesReportSheet, headers); err != nil {
+	fmt.Printf("Compute and write overall targets for TSE for %s \n", productType)
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"TSE Targets"}, 1); err != nil {
 		return err
 	}
-	// Custom number format for Indian numbering
+	targetHeaders := []string{"TSE", "Target: Overall", "Achieved", "Balance", "Balance %"}
+	startRow := 2
+	// Write Overall Target
+	overallRow, err := g.writeTarget(sales, tseSalesTarget, f, salesReportSheet, targetHeaders, startRow)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Compute and write MoP > ₹12000 (60%) targets for TSE.")
+	// Create a map for TSE overall 60% targets
+	tseOverall60PctTargets := make(map[string]int)
+	for k, v := range tseSalesTarget {
+		tseOverall60PctTargets[k] = int(float64(v) * 0.6) // 60% of overall target
+	}
+	targetHeaders60Pct := []string{"TSE", "Target: MoP > ₹12000 (60%)", "Achieved", "Balance", "Balance %"}
+	startRow = overallRow + 1
+	// Write Overall Target
+	target60PctEndRow, err := g.writeTarget(sales, tseOverall60PctTargets, f, salesReportSheet, targetHeaders60Pct, startRow)
+	if err != nil {
+		return err
+	}
+
+	// Create a map for TSE overall 40% targets
+	tseOverall40PctTargets := make(map[string]int)
+	for k, v := range tseSalesTarget {
+		tseOverall40PctTargets[k] = int(float64(v) * 0.4) // 40% of overall target
+	}
+	targetHeaders40Pct := []string{"TSE", "Target: MoP < ₹12000 (40%)", "Achieved", "Balance", "Balance %"}
+	startRow = target60PctEndRow + 1
+	// Write Overall Target
+	target40PctEndRow, err := g.writeTarget(sales, tseOverall40PctTargets, f, salesReportSheet, targetHeaders40Pct, startRow)
+	if err != nil {
+		return err
+	}
+
+	target40PctEndRow++
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, target40PctEndRow); err != nil {
+		return err
+	}
+	fmt.Printf("Compute and write sales report of each retailer and TSE for %s.\n", productType)
+	err = g.writeSales(target40PctEndRow+1, f, salesReportSheet, sales)
+	if err != nil {
+		return err
+	}
+
+	excel.AdjustColumnWidths(f, salesReportSheet)
+	fileName := "sales_report.xlsx"
+	outputPath := filepath.Join(outputDir, fileName)
+	return f.SaveAs(outputPath)
+}
+
+func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData, target map[string]int, f *excelize.File, salesReportSheet string, headers []string, startRow int) (int, error) {
+	salesTSE := make(map[string]*repository.SalesData)
+	for _, data := range sales {
+		tse := data.TSE
+		if tse != "" {
+			if existingData, exists := salesTSE[tse]; exists {
+				existingData.MTDS += data.MTDS
+				existingData.Value += data.Value
+			} else {
+				salesTSE[tse] = data
+			}
+		}
+	}
+	// Print every entry in salesTSE
+	for tse, data := range salesTSE {
+		fmt.Printf("TSE: %s, MTDS: %d, Value: %d\n", tse, data.MTDS, data.Value)
+	}
+
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, startRow); err != nil {
+		return 0, err
+	}
+	targetRow := startRow + 1
+	for _, data := range salesTSE {
+		tgt := target[data.TSE]
+		bal := target[data.TSE] - data.MTDS
+		balPct := (bal / tgt) * 100.00
+		tseCellData := []interface{}{
+			data.TSE,
+			tgt,
+			data.MTDS,
+			bal,
+			balPct,
+		}
+		if err := excel.WriteRow(f, salesReportSheet, targetRow, tseCellData); err != nil {
+			return 0, err
+		}
+		targetRow++
+	}
+	return targetRow, nil
+}
+
+func (*SalesTargetGenerator) writeSales(row int, f *excelize.File, salesReportSheet string, sales map[string]*repository.SalesData) error {
+	headers := []string{"Dealer Code", "Dealer Name", "Sell Out", "Total Sales Value(₹)", "TSE"}
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, row); err != nil {
+		return err
+	}
+
 	inrFormat := "#,##,##0.00"
 	numberStyle, _ := f.NewStyle(&excelize.Style{
-		CustomNumFmt: &inrFormat, // Custom number format for Indian numbering
+		CustomNumFmt: &inrFormat,
 		Border: []excelize.Border{
 			{Type: "left", Color: "000000", Style: 1},
 			{Type: "top", Color: "000000", Style: 1},
@@ -110,10 +221,9 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		},
 	})
 
-	// Create a new redStyle
 	redStyle, _ := f.NewStyle(&excelize.Style{
-		Fill:         excelize.Fill{Type: "pattern", Color: []string{"FF9999"}, Pattern: 1}, // Light red background
-		CustomNumFmt: &inrFormat,                                                            // Custom number format for Indian numbering
+		Fill:         excelize.Fill{Type: "pattern", Color: []string{"FF9999"}, Pattern: 1},
+		CustomNumFmt: &inrFormat,
 		Border: []excelize.Border{
 			{Type: "left", Color: "000000", Style: 1},
 			{Type: "top", Color: "000000", Style: 1},
@@ -121,27 +231,25 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 			{Type: "right", Color: "000000", Style: 1},
 		},
 		Font: &excelize.Font{
-			Bold: true, // Set text to bold
+			Bold: true,
 		},
 	})
 
-	// Convert map to slice for sorting
 	salesSlice := make([]*repository.SalesData, 0, len(sales))
 	for _, data := range sales {
 		salesSlice = append(salesSlice, data)
 	}
 
-	// Sort by TSE and then by Total Sales Value(₹)
 	sort.Slice(salesSlice, func(i, j int) bool {
 		if salesSlice[i].TSE == salesSlice[j].TSE {
 			return salesSlice[i].Value > salesSlice[j].Value
 		}
 		return salesSlice[i].TSE > salesSlice[j].TSE
 	})
-	// Calculate totals
+
 	totalQty := 0
 	totalValue := 0
-	row := 2
+	salesRow := row + 1
 	for _, data := range salesSlice {
 		cellData := []interface{}{
 			data.DealerCode,
@@ -153,48 +261,42 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		totalQty += data.MTDS
 		totalValue += data.Value
 
-		if err := excel.WriteRow(f, salesReportSheet, row, cellData); err != nil {
+		if err := excel.WriteRow(f, salesReportSheet, salesRow, cellData); err != nil {
 			return err
 		}
 
-		// Apply number style to numeric columns
 		for col := 3; col <= 3; col++ {
-			cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
+			cell := fmt.Sprintf("%s%d", string('A'+col), salesRow)
 			var style int
-			if data.MTDS < 0 { // Check if MTDS is negative
-				style = redStyle // Use redStyle for negative values
+			if data.MTDS < 0 {
+				style = redStyle
 			} else {
-				style = numberStyle // Use numberStyle for non-negative values
+				style = numberStyle
 			}
 			if err := f.SetCellStyle(salesReportSheet, cell, cell, style); err != nil {
 				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 			}
 		}
-		row++
+		salesRow++
 	}
 
-	// Write totals to the last row
-	totalRow := row
+	totalRow := salesRow
 	totalCellData := []interface{}{
-		"Total", // Label for the total row
-		"",      // Dealer Name
+		"Total",
+		"",
 		totalQty,
 		totalValue,
-		"", // TSE
+		"",
 	}
 	if err := excel.WriteRow(f, salesReportSheet, totalRow, totalCellData); err != nil {
 		return err
 	}
 
-	// Apply number style to total row
-	for col := 2; col <= 3; col++ { // Columns C (3) to D (4)
-		cell := fmt.Sprintf("%s%d", string('A'+col), totalRow) // Convert column index to letter
+	for col := 3; col <= 3; col++ {
+		cell := fmt.Sprintf("%s%d", string('A'+col), totalRow)
 		if err := f.SetCellStyle(salesReportSheet, cell, cell, numberStyle); err != nil {
 			return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 		}
 	}
-	excel.AdjustColumnWidths(f, salesReportSheet)
-	fileName := "sales_report.xlsx"
-	outputPath := filepath.Join(outputDir, fileName)
-	return f.SaveAs(outputPath)
+	return nil
 }
