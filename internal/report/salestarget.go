@@ -172,13 +172,16 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 				existingData.MTDS += data.MTDS
 				existingData.Value += data.Value
 			} else {
-				salesTSE[tse] = data
+				salesTSE[tse] = &repository.SalesData{ // {{ edit_1 }}
+					TSE:        tse,
+					MTDS:       data.MTDS,
+					Value:      data.Value,
+					DealerCode: "",
+					DealerName: "",
+					ItemName:   "",
+				}
 			}
 		}
-	}
-	// Print every entry in salesTSE
-	for tse, data := range salesTSE {
-		fmt.Printf("TSE: %s, MTDS: %d, Value: %d\n", tse, data.MTDS, data.Value)
 	}
 
 	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, startRow); err != nil {
