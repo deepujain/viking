@@ -97,7 +97,7 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		return err
 	}
 	// Custom number format for Indian numbering
-	inrFormat := "#,##,##0"
+	inrFormat := "#,##,##0.00"
 	numberStyle, _ := f.NewStyle(&excelize.Style{
 		CustomNumFmt: &inrFormat, // Custom number format for Indian numbering
 		Border: []excelize.Border{
