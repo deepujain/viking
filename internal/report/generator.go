@@ -19,6 +19,8 @@ func NewReportGenerator(reportType string, cfg *config.Config) (ReportGenerator,
 		return NewGrowthReportGenerator(cfg), nil
 	case "pricelist":
 		return NewPriceListGenerator(cfg), nil
+	case "salestarget":
+		return NewSalesTargetGenerator(cfg), nil
 	default:
 		return nil, fmt.Errorf("unknown report type: %s", reportType)
 	}

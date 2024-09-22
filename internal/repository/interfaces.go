@@ -29,3 +29,6 @@ type PriceListRepository interface {
 	GetPriceListData() ([]PriceListRow, error)
 	GetMaterialCodeMap() (map[string]int, error)
 }
+type SalesTargetRepository interface {
+	ComputeSales(fileType string) (map[string]*SalesData, error)
+}
