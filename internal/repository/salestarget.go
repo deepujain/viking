@@ -23,7 +23,7 @@ func NewExcelSalesTargetRepository() *ExcelSalesTargetRepository {
 	return &ExcelSalesTargetRepository{}
 }
 
-func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string) (map[string]*SalesData, error) {
+func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap map[string]string) (map[string]*SalesData, error) {
 	fmt.Printf(" from %s \n", salesFilePath)
 	f, err := excelize.OpenFile(salesFilePath)
 	if err != nil {
@@ -74,6 +74,7 @@ func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string) (map[str
 				DealerName: dealerName,
 				MTDS:       1,
 				Value:      0,
+				TSE:        tseMap[dealerCode],
 			}
 		}
 

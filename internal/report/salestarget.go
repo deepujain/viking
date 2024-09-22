@@ -33,33 +33,28 @@ func NewSalesTargetGenerator(cfg *config.Config) *SalesTargetGenerator {
 }
 
 func (s *SalesTargetGenerator) Generate() error {
-	fmt.Println("Generating Sales Target report.")
+	fmt.Printf("Generating Sales Target report for %s %d \n", time.Now().Month().String(), time.Now().Year())
+
+	fmt.Println("Fetching retailer code to TSE name map from metadata.")
+	tseMap, _ := s.tseMappingRepo.GetRetailerCodeToTSEMap()
 
 	fmt.Print("Fetching monthly sales from Tally and computing sales for each retailer")
-	sales, err := s.salesTargetRepo.ComputeSales(s.cfg.ReportFiles.SalesReport)
+	sales, err := s.salesTargetRepo.ComputeSales(s.cfg.ReportFiles.SalesReport, tseMap)
 	if err != nil {
 		return fmt.Errorf("error : %w", err)
 	}
 
-	tseMap, _ := s.tseMappingRepo.GetRetailerCodeToTSEMap()
-	fmt.Println(tseMap)
-	// Print each key-value pair in the sales map
-	for key, value := range sales {
-		fmt.Printf("Key: %s, Value: %+v\n", key, value)
-	}
-
-	// Use priceData, tseMapping, and creditData in your COGS calculation logic here
 	reportFile := excel.NewFile()
-
 	outputDir := utils.GenerateOutputPath(s.cfg.OutputDir, "sales_report")
-	if err := s.writeSalesReport(reportFile, outputDir, sales, tseMap); err != nil {
+	if err := s.writeSalesReport(reportFile, outputDir, sales); err != nil {
 		return fmt.Errorf("error writing sales report: %w", err)
 	}
+	fmt.Printf("Sales report generated successfully for %s %d: %s \n", time.Now().Month().String(), time.Now().Year(), outputDir)
 	return nil
 }
 
-func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData, tseMap map[string]string) error {
-	salesReportSheet := fmt.Sprintf("Sales: %s %d", time.Now().Month().String(), time.Now().Year()) // Updated to include month and year
+func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData) error {
+	salesReportSheet := fmt.Sprintf("Sales- %s %d", time.Now().Month().String(), time.Now().Year()) // Updated to include month and year
 	// Create a new sheet
 	if _, err := f.NewSheet(salesReportSheet); err != nil {
 		return fmt.Errorf("error creating new sheet: %w", err)
@@ -102,27 +97,27 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 	})
 
 	// Convert map to slice for sorting
-	inventorySlice := make([]*repository.SalesData, 0, len(sales))
+	salesSlice := make([]*repository.SalesData, 0, len(sales))
 	for _, data := range sales {
-		inventorySlice = append(inventorySlice, data)
+		salesSlice = append(salesSlice, data)
 	}
 
-	// Sort by TSE and then by Cost-Credit Difference
-	sort.Slice(inventorySlice, func(i, j int) bool {
-		if inventorySlice[i].TSE == inventorySlice[j].TSE {
-			return inventorySlice[i].Value > inventorySlice[j].Value
+	// Sort by TSE and then by Total Sales Value(₹)
+	sort.Slice(salesSlice, func(i, j int) bool {
+		if salesSlice[i].TSE == salesSlice[j].TSE {
+			return salesSlice[i].Value > salesSlice[j].Value
 		}
-		return inventorySlice[i].TSE < inventorySlice[j].TSE
+		return salesSlice[i].TSE > salesSlice[j].TSE
 	})
 
 	row := 2
-	for _, data := range inventorySlice {
+	for _, data := range salesSlice {
 		cellData := []interface{}{
 			data.DealerCode,
 			data.DealerName,
 			data.MTDS,
 			data.Value,
-			tseMap[data.DealerCode],
+			data.TSE,
 		}
 		if err := excel.WriteRow(f, salesReportSheet, row, cellData); err != nil {
 			return err

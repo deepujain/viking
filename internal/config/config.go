@@ -67,7 +67,7 @@ func Load() (*Config, error) {
 			},
 			InventoryReport: filepath.Join(dataDir, "cogs_report", "DealerInventory.xlsx"),
 			PriceListFile:   filepath.Join(dataDir, "price_list", "ZD PRICE LIST.xlsx"),
-			SalesReport:     filepath.Join(dataDir, "sales", "Sales1.xlsx"),
+			SalesReport:     filepath.Join(dataDir, "sales", "Sales.xlsx"),
 		},
 	}
 
