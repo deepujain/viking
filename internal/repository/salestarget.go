@@ -14,6 +14,7 @@ type SalesData struct {
 	MTDS       int
 	TSE        string
 	Value      int
+	ItemName   string
 }
 
 type ExcelSalesTargetRepository struct {
@@ -51,11 +52,16 @@ func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap m
 		return nil, err
 	}
 
+	itemNameIdx, err := utils.GetHeaderIndex(f, sheetName, "Item Name", 9)
+	if err != nil {
+		return nil, err
+	}
+
 	sales := make(map[string]*SalesData)
 	for _, row := range rows[9:] {
 		dealerCode := row[dealerCodeIdx]
 		dealerName := row[dealerNameIdx]
-
+		itemName := row[itemNameIdx]
 		if dealerCode == "" {
 			continue
 		}
@@ -75,6 +81,7 @@ func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap m
 				MTDS:       1,
 				Value:      0,
 				TSE:        tseMap[dealerCode],
+				ItemName:   itemName,
 			}
 		}
 

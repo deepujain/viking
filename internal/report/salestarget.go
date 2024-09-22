@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
@@ -44,17 +45,43 @@ func (s *SalesTargetGenerator) Generate() error {
 		return fmt.Errorf("error : %w", err)
 	}
 
+	// Create separate maps for SMART, ACCESSORIES, and others
+	smartPhoneSales := make(map[string]*repository.SalesData)
+	accessoriesSales := make(map[string]*repository.SalesData)
+	otherSales := make(map[string]*repository.SalesData)
+
+	for key, data := range sales {
+
+		if strings.Contains(data.ItemName, "SMART") {
+			smartPhoneSales[key] = data
+		} else if strings.Contains(data.ItemName, "ACCESSORIES") {
+			accessoriesSales[key] = data
+		} else {
+			otherSales[key] = data
+		}
+	}
+
 	reportFile := excel.NewFile()
 	outputDir := utils.GenerateOutputPath(s.cfg.OutputDir, "sales_report")
-	if err := s.writeSalesReport(reportFile, outputDir, sales); err != nil {
-		return fmt.Errorf("error writing sales report: %w", err)
+	// Invoke writeSalesReport for each category
+	fmt.Println("Write monthly sales of SMART PHONES for each retailer")
+	if err := s.writeSalesReport(reportFile, outputDir, smartPhoneSales, "SMART PHONES"); err != nil {
+		return fmt.Errorf("error writing smartphone sales report: %w", err)
+	}
+	fmt.Println("Write monthly sales of ACCESSORIES for each retailer")
+	if err := s.writeSalesReport(reportFile, outputDir, accessoriesSales, "ACCESSORIES"); err != nil {
+		return fmt.Errorf("error writing accessories sales report: %w", err)
+	}
+	fmt.Println("Write monthly sales of OTHERS for each retailer")
+	if err := s.writeSalesReport(reportFile, outputDir, otherSales, "OTHERS"); err != nil {
+		return fmt.Errorf("error writing other sales report: %w", err)
 	}
 	fmt.Printf("Sales report generated successfully for %s %d: %s \n", time.Now().Month().String(), time.Now().Year(), outputDir)
 	return nil
 }
 
-func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData) error {
-	salesReportSheet := fmt.Sprintf("Sales- %s %d", time.Now().Month().String(), time.Now().Year()) // Updated to include month and year
+func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData, productType string) error {
+	salesReportSheet := productType
 	// Create a new sheet
 	if _, err := f.NewSheet(salesReportSheet); err != nil {
 		return fmt.Errorf("error creating new sheet: %w", err)
