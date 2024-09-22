@@ -136,7 +136,9 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		}
 		return salesSlice[i].TSE > salesSlice[j].TSE
 	})
-
+	// Calculate totals
+	totalQty := 0
+	totalValue := 0
 	row := 2
 	for _, data := range salesSlice {
 		cellData := []interface{}{
@@ -146,12 +148,15 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 			data.Value,
 			data.TSE,
 		}
+		totalQty += data.MTDS
+		totalValue += data.Value
+
 		if err := excel.WriteRow(f, salesReportSheet, row, cellData); err != nil {
 			return err
 		}
 
-		// Apply number style to numeric columns (0-7 Days to Total Credit)
-		for col := 2; col <= 3; col++ { // Columns C (3) to I (5)
+		// Apply number style to numeric columns
+		for col := 2; col <= 3; col++ {
 			cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
 			var style int
 			if data.MTDS < 0 { // Check if MTDS is negative
@@ -164,6 +169,27 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 			}
 		}
 		row++
+	}
+
+	// Write totals to the last row
+	totalRow := row
+	totalCellData := []interface{}{
+		"Total", // Label for the total row
+		"",      // Dealer Name
+		totalQty,
+		totalValue,
+		"", // TSE
+	}
+	if err := excel.WriteRow(f, salesReportSheet, totalRow, totalCellData); err != nil {
+		return err
+	}
+
+	// Apply number style to total row
+	for col := 2; col <= 3; col++ { // Columns C (3) to D (4)
+		cell := fmt.Sprintf("%s%d", string('A'+col), totalRow) // Convert column index to letter
+		if err := f.SetCellStyle(salesReportSheet, cell, cell, numberStyle); err != nil {
+			return fmt.Errorf("error setting style for cell %s: %w", cell, err)
+		}
 	}
 	excel.AdjustColumnWidths(f, salesReportSheet)
 	fileName := "sales_report.xlsx"

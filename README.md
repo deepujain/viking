@@ -47,6 +47,9 @@ Our daily reporting system addresses key business needs:
 
 - **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
 - **Credit Report**: Processes bill data, categorizes by age, and creates separate reports for each TSE and missing TSE data.
+- **COGS Report**: Calculates the total inventory cost for each retailer, assesses potential financial exposure in case of flight risk, and provides insights for inventory management.
+- **Sales Report**: Fetches sales data from Excel files for each retailer, computes month-to-date sales performance, and generates detailed reports categorized by product types.
+- **PriceList Report**: Generates a flat price list of SKUs for the current month, fetching price data from the zonal distributor and inventory data for material codes. Outputs a structured Excel report containing SKU Type, Model, Color, Variant, NLC (Net Landing Cost), MOP (Market Operating Price), MRP (Maximum Retail Price), and Material Code.
 - **Automated Daily Generation**: Reports are automatically generated and saved with date-stamped directories for easy tracking and comparison.
 
 By providing these daily reports, Viking Reports empowers businesses to make informed decisions, optimize operations, and drive growth while managing financial risks effectively.
@@ -70,7 +73,24 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    - Calculates the total inventory cost for each retailer (store)
    - Helps assess potential financial impact in case of flight risk by computing inventory shortfall
    - Provides insights for inventory management and risk assessment
-
+4. Sales Report Generation
+   - Fetches sales data from Excel files for each retailer
+   - Computes month-to-date sales performance
+   - Generates reports categorized by product types (e.g., SMART PHONES, ACCESSORIES)
+   - Outputs detailed sales reports with total sales values and quantities for each retailer
+   - Supports TSE-specific reporting for targeted follow-ups
+5. PriceList Report Generation
+   - Generates a flat price list of SKUs for the current month.
+   - Fetches price data from the zonal distributor and inventory data for material codes.
+   - Outputs a structured Excel report containing:
+     - SKU Type
+     - Model
+     - Color
+     - Variant
+     - NLC (Net Landing Cost)
+     - MOP (Market Operating Price)
+     - MRP (Maximum Retail Price)
+     - Material Code
 ## Prerequisites
 
 - Go 1.x or higher
@@ -138,6 +158,33 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    ```
 
 3. The generated report will be saved in a new directory named `cogs_reports_YYYY-MM-DD`.
+
+### Sales Report
+
+1. Ensure the following Excel file is present in the `data` directory:
+   - `data/sales/Sales.xlsx` (containing sales data for each retailer)
+
+2. Run the sales report generator:
+   ```
+   cd sales_report
+   go run main.go
+   ```
+
+3. The generated sales report will be saved in a new directory named `sales_reports_YYYY-MM-DD`.
+
+### PriceList Report
+
+1. Ensure the following Excel files are present in the `data` directory:
+   - `data/pricelist/ZonalDistributorPriceList.xlsx` (containing price data from the zonal distributor)
+   - `data/inventory/DealerInventory.xlsx` (containing current inventory data for all retailers)
+
+2. Run the price list report generator:
+   ```
+   cd pricelist
+   go run main.go
+   ```
+
+3. The generated report will be saved in a new directory named `price_list_reports_YYYY-MM-DD`.
 
 ## Dependencies
 
