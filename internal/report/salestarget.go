@@ -54,8 +54,10 @@ func (s *SalesTargetGenerator) Generate() error {
 
 		if strings.Contains(data.ItemName, "SMART") {
 			smartPhoneSales[key] = data
-		} else if strings.Contains(data.ItemName, "ACCESSORIES") {
+		} else if strings.Contains(data.ItemName, "ACCESSORIES") || strings.Contains(data.ItemName, "Buds") {
 			accessoriesSales[key] = data
+		} else if strings.Contains(data.ItemName, "Item Name") {
+			continue
 		} else {
 			otherSales[key] = data
 		}
@@ -92,7 +94,7 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
-	headers := []string{"Dealer Code", "Dealer Name", "QTY", "Total Sales Value(₹)", "TSE"}
+	headers := []string{"Dealer Code", "Dealer Name", "Sell Out", "Total Sales Value(₹)", "TSE"}
 	if err := excel.WriteHeaders(f, salesReportSheet, headers); err != nil {
 		return err
 	}
@@ -156,7 +158,7 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		}
 
 		// Apply number style to numeric columns
-		for col := 2; col <= 3; col++ {
+		for col := 3; col <= 3; col++ {
 			cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
 			var style int
 			if data.MTDS < 0 { // Check if MTDS is negative
