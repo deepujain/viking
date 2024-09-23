@@ -109,50 +109,28 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 	}
 
 	fmt.Printf("Compute and write overall targets for TSE for %s \n", productType)
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"TSE Targets"}, 1); err != nil {
+	var startRow = 1
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{productType}, startRow); err != nil {
 		return err
 	}
+	startRow++
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"TSE Targets"}, startRow); err != nil {
+		return err
+	}
+	startRow++
 	targetHeaders := []string{"TSE", "Target: Overall", "Achieved", "Balance", "Balance %"}
-	startRow := 2
 	// Write Overall Target
 	overallRow, err := g.writeTarget(sales, tseSalesTarget, f, salesReportSheet, targetHeaders, startRow)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Compute and write MoP > ₹12000 (60%) targets for TSE.")
-	// Create a map for TSE overall 60% targets
-	tseOverall60PctTargets := make(map[string]int)
-	for k, v := range tseSalesTarget {
-		tseOverall60PctTargets[k] = int(float64(v) * 0.6) // 60% of overall target
-	}
-	targetHeaders60Pct := []string{"TSE", "Target: MoP > ₹12000 (60%)", "Achieved", "Balance", "Balance %"}
-	startRow = overallRow + 1
-	// Write Overall Target
-	target60PctEndRow, err := g.writeTarget(sales, tseOverall60PctTargets, f, salesReportSheet, targetHeaders60Pct, startRow)
-	if err != nil {
-		return err
-	}
-
-	// Create a map for TSE overall 40% targets
-	tseOverall40PctTargets := make(map[string]int)
-	for k, v := range tseSalesTarget {
-		tseOverall40PctTargets[k] = int(float64(v) * 0.4) // 40% of overall target
-	}
-	targetHeaders40Pct := []string{"TSE", "Target: MoP < ₹12000 (40%)", "Achieved", "Balance", "Balance %"}
-	startRow = target60PctEndRow + 1
-	// Write Overall Target
-	target40PctEndRow, err := g.writeTarget(sales, tseOverall40PctTargets, f, salesReportSheet, targetHeaders40Pct, startRow)
-	if err != nil {
-		return err
-	}
-
-	target40PctEndRow++
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, target40PctEndRow); err != nil {
+	overallRow++
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, overallRow); err != nil {
 		return err
 	}
 	fmt.Printf("Compute and write sales report of each retailer and TSE for %s.\n", productType)
-	err = g.writeSales(target40PctEndRow+1, f, salesReportSheet, sales)
+	err = g.writeSales(overallRow+1, f, salesReportSheet, sales)
 	if err != nil {
 		return err
 	}
