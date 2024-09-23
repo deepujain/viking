@@ -191,7 +191,8 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 	for _, data := range salesTSE {
 		tgt := target[data.TSE]
 		bal := target[data.TSE] - data.MTDS
-		balPct := (bal / tgt) * 100.00
+		balPct := (float64(bal) / float64(tgt)) * 100.00
+
 		tseCellData := []interface{}{
 			data.TSE,
 			tgt,
@@ -201,6 +202,22 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 		}
 		if err := excel.WriteRow(f, salesReportSheet, targetRow, tseCellData); err != nil {
 			return 0, err
+		}
+
+		inrFormat := "0.00"
+		numberStyle, _ := f.NewStyle(&excelize.Style{
+			CustomNumFmt: &inrFormat,
+			Border: []excelize.Border{
+				{Type: "left", Color: "000000", Style: 1},
+				{Type: "top", Color: "000000", Style: 1},
+				{Type: "bottom", Color: "000000", Style: 1},
+				{Type: "right", Color: "000000", Style: 1},
+			},
+		})
+		col := 4
+		cell := fmt.Sprintf("%s%d", string('A'+col), targetRow)
+		if err := f.SetCellStyle(salesReportSheet, cell, cell, numberStyle); err != nil {
+			return targetRow, fmt.Errorf("error setting style for cell %s: %w", cell, err)
 		}
 		targetRow++
 	}
