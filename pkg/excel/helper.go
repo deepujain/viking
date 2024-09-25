@@ -37,7 +37,7 @@ func WriteHeaders(f *excelize.File, sheetName string, headers []string) error {
 }
 
 // WriteHeaders writes the headers to the Excel sheet
-func WriteHeadersIdx(f *excelize.File, sheetName string, headers []string, headerIdx int) error {
+func WriteHeadersIdx(f *excelize.File, sheetName string, headers []string, headerIdx int, mergeCols int) error {
 	headerStyle, err := f.NewStyle(&excelize.Style{
 		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFFF00"}, Pattern: 1},
 		Font: &excelize.Font{Bold: true},
@@ -55,7 +55,34 @@ func WriteHeadersIdx(f *excelize.File, sheetName string, headers []string, heade
 	for i, header := range headers {
 		cell := fmt.Sprintf("%s%d", string('A'+i), headerIdx)
 		f.SetCellValue(sheetName, cell, header)
-		f.SetCellStyle(sheetName, cell, cell, headerStyle)
+		if mergeCols == 0 {
+			f.SetCellStyle(sheetName, cell, cell, headerStyle)
+		}
+	}
+
+	// Merge columns if mergeCols is greater than 0
+	if mergeCols > 0 {
+		f.MergeCell(sheetName, "A"+fmt.Sprintf("%d", headerIdx), string(rune('A'+mergeCols-1))+fmt.Sprintf("%d", headerIdx))
+		// Set alignment for the merged cell
+		alignStyle, err := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"FFFF00"}, Pattern: 1},
+			Font: &excelize.Font{Bold: true},
+			Border: []excelize.Border{
+				{Type: "left", Color: "000000", Style: 1},
+				{Type: "top", Color: "000000", Style: 1},
+				{Type: "bottom", Color: "000000", Style: 1},
+				{Type: "right", Color: "000000", Style: 1},
+			},
+			Alignment: &excelize.Alignment{
+				Horizontal: "center",
+				Vertical:   "center",
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create alignment style: %w", err)
+		}
+		f.SetCellStyle(sheetName, "A"+fmt.Sprintf("%d", headerIdx), string(rune('A'+mergeCols-1))+fmt.Sprintf("%d", headerIdx), alignStyle)
+
 	}
 
 	return nil

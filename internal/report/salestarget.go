@@ -36,15 +36,16 @@ func NewSalesTargetGenerator(cfg *config.Config) *SalesTargetGenerator {
 func (s *SalesTargetGenerator) Generate() error {
 	fmt.Printf("Generating Sales Target report for %s %d \n", time.Now().Month().String(), time.Now().Year())
 
-	fmt.Println("Fetching retailer code to TSE name map from metadata.")
+	fmt.Println("** Input: Fetching retailer code to TSE name map from metadata. **")
 	tseMap, _ := s.tseMappingRepo.GetRetailerCodeToTSEMap()
 
-	fmt.Print("Fetching monthly sales from Tally and computing sales for each retailer")
+	fmt.Print("** Input: Fetching monthly sales from Tally and computing sales for each retailer **")
 	sales, err := s.salesTargetRepo.ComputeSales(s.cfg.ReportFiles.SalesReport, tseMap)
 	if err != nil {
 		return fmt.Errorf("error : %w", err)
 	}
 
+	fmt.Println("Generating output...")
 	// Create separate maps for SMART, ACCESSORIES, and others
 	smartPhoneSales := make(map[string]*repository.SalesData)
 	accessoriesSales := make(map[string]*repository.SalesData)
@@ -110,11 +111,11 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 
 	fmt.Printf("Compute and write overall targets for TSE for %s \n", productType)
 	var startRow = 1
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{productType}, startRow); err != nil {
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{productType}, startRow, 5); err != nil {
 		return err
 	}
 	startRow++
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"TSE Targets"}, startRow); err != nil {
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"TSE Targets"}, startRow, 5); err != nil {
 		return err
 	}
 	startRow++
@@ -126,7 +127,7 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 	}
 
 	overallRow++
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, overallRow); err != nil {
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, overallRow, 5); err != nil {
 		return err
 	}
 	fmt.Printf("Compute and write sales report of each retailer and TSE for %s.\n", productType)
@@ -162,10 +163,30 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 		}
 	}
 
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, startRow); err != nil {
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, startRow, 0); err != nil {
 		return 0, err
 	}
 	targetRow := startRow + 1
+
+	greenStyle, _ := f.NewStyle(&excelize.Style{ // {{ edit_1 }}
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"00FF00"}, Pattern: 1},
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+	})
+	lightYellowStyle, _ := f.NewStyle(&excelize.Style{ // {{ edit_2 }}
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFE5B4"}, Pattern: 1},
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+	})
+
 	for _, data := range salesTSE {
 		tgt := target[data.TSE]
 		bal := target[data.TSE] - data.MTDS
@@ -197,6 +218,17 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 		if err := f.SetCellStyle(salesReportSheet, cell, cell, numberStyle); err != nil {
 			return targetRow, fmt.Errorf("error setting style for cell %s: %w", cell, err)
 		}
+
+		// Set styles for Achieved and Balance columns
+		achievedCell := fmt.Sprintf("%s%d", string('A'+2), targetRow) // Achieved column
+		if err := f.SetCellStyle(salesReportSheet, achievedCell, achievedCell, greenStyle); err != nil {
+			return targetRow, fmt.Errorf("error setting style for cell %s: %w", achievedCell, err)
+		}
+
+		balanceCell := fmt.Sprintf("%s%d", string('A'+3), targetRow) // Balance column
+		if err := f.SetCellStyle(salesReportSheet, balanceCell, balanceCell, lightYellowStyle); err != nil {
+			return targetRow, fmt.Errorf("error setting style for cell %s: %w", balanceCell, err)
+		}
 		targetRow++
 	}
 	return targetRow, nil
@@ -204,7 +236,7 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 
 func (*SalesTargetGenerator) writeSales(row int, f *excelize.File, salesReportSheet string, sales map[string]*repository.SalesData) error {
 	headers := []string{"Dealer Code", "Dealer Name", "Sell Out", "Total Sales Value(₹)", "TSE"}
-	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, row); err != nil {
+	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, row, 0); err != nil {
 		return err
 	}
 
