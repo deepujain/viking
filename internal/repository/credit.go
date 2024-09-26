@@ -136,6 +136,8 @@ func (r *ExcelCreditRepository) AggregateCreditByRetailer(bills []Bill, tseMappi
 }
 
 func (r *ExcelCreditRepository) GetBills() ([]Bill, error) {
+	fmt.Println("** Input: Fetching invoices of daily sales from Tally. **")
+
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open bills file: %w", err)

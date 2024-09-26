@@ -36,7 +36,6 @@ func NewCreditReportGenerator(cfg *config.Config) *CreditReportGenerator {
 }
 
 func (g *CreditReportGenerator) Generate() error {
-	fmt.Println("Generating Credit report of retailers ...")
 
 	bills, err := g.creditRepo.GetBills()
 	if err != nil {
@@ -52,7 +51,9 @@ func (g *CreditReportGenerator) Generate() error {
 	if err != nil {
 		return fmt.Errorf("error reading Name to Code mapping: %w", err)
 	}
+	fmt.Println("** Input: Fetching the stock inventory of retailers from DMS portal  **")
 
+	fmt.Println("\n== Begin processing! ==")
 	retailerCredit := g.creditRepo.AggregateCreditByRetailer(bills, tseMapping, retailerNameToCodeMap)
 
 	inventoryData, err := g.inventoryRepo.ComputeInventoryShortFall()
@@ -64,8 +65,9 @@ func (g *CreditReportGenerator) Generate() error {
 	if err := g.writeCreditReports(outputDir, retailerCredit, inventoryData); err != nil {
 		return fmt.Errorf("error writing credit reports: %w", err)
 	}
-
-	fmt.Printf("Credit reports generated successfully in: %s\n", outputDir)
+	fmt.Println("== End processing! ==")
+	fmt.Println()
+	fmt.Printf("** Output: Credit reports generated successfully in: %s ** \n", outputDir)
 	return nil
 }
 

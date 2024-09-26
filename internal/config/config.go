@@ -51,23 +51,23 @@ func Load() (*Config, error) {
 		DataDir:   dataDir,
 		OutputDir: outputDir,
 		CommonFiles: CommonFiles{
-			DealerInfo: filepath.Join(dataDir, "common", "Retailer Metadata.xlsx"),
-			TSEMapping: filepath.Join(dataDir, "common", "Retailer Metadata.xlsx"),
-			PriceList:  filepath.Join(dataDir, "common", "ProductPriceList.xlsx"),
+			DealerInfo: filepath.Join(dataDir, "Retailer Metadata.xlsx"),
+			TSEMapping: filepath.Join(dataDir, "Retailer Metadata.xlsx"),
+			PriceList:  filepath.Join(dataDir, "ProductPriceList.xlsx"),
 		},
 		ReportFiles: ReportFiles{
 			CreditReport: CreditReportFiles{
-				Bills: filepath.Join(dataDir, "credit_report", "Bills.xlsx"),
+				Bills: filepath.Join(dataDir, "Bills.xlsx"),
 			},
 			GrowthReport: GrowthReportFiles{
-				MTDSO:  filepath.Join(dataDir, "growth_report", "MTD-SO.xlsx"),
-				LMTDSO: filepath.Join(dataDir, "growth_report", "LMTD-SO.xlsx"),
-				MTDST:  filepath.Join(dataDir, "growth_report", "MTD-ST.xlsx"),
-				LMTDST: filepath.Join(dataDir, "growth_report", "LMTD-ST.xlsx"),
+				MTDSO:  filepath.Join(dataDir, "MTD-SO.xlsx"),
+				LMTDSO: filepath.Join(dataDir, "LMTD-SO.xlsx"),
+				MTDST:  filepath.Join(dataDir, "MTD-ST.xlsx"),
+				LMTDST: filepath.Join(dataDir, "LMTD-ST.xlsx"),
 			},
-			InventoryReport: filepath.Join(dataDir, "cogs_report", "DealerInventory.xlsx"),
-			PriceListFile:   filepath.Join(dataDir, "price_list", "ZD PRICE LIST.xlsx"),
-			SalesReport:     filepath.Join(dataDir, "sales", "Sales.xlsx"),
+			InventoryReport: filepath.Join(dataDir, "DealerInventory.xlsx"),
+			PriceListFile:   filepath.Join(dataDir, "ZD PRICE LIST.xlsx"),
+			SalesReport:     filepath.Join(dataDir, "Sales.xlsx"),
 		},
 	}
 

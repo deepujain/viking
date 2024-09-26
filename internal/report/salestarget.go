@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
@@ -34,9 +33,8 @@ func NewSalesTargetGenerator(cfg *config.Config) *SalesTargetGenerator {
 }
 
 func (s *SalesTargetGenerator) Generate() error {
-	fmt.Printf("Generating Sales Target report for %s %d \n", time.Now().Month().String(), time.Now().Year())
+	fmt.Println("Generating sales target report for TSE.")
 
-	fmt.Println("** Input: Fetching retailer code to TSE name map from metadata. **")
 	tseMap, _ := s.tseMappingRepo.GetRetailerCodeToTSEMap()
 
 	fmt.Print("** Input: Fetching monthly sales from Tally and computing sales for each retailer **")
@@ -45,7 +43,7 @@ func (s *SalesTargetGenerator) Generate() error {
 		return fmt.Errorf("error : %w", err)
 	}
 
-	fmt.Println("Generating output...")
+	fmt.Println("\n== Begin processing! ==")
 	// Create separate maps for SMART, ACCESSORIES, and others
 	smartPhoneSales := make(map[string]*repository.SalesData)
 	accessoriesSales := make(map[string]*repository.SalesData)
@@ -70,9 +68,9 @@ func (s *SalesTargetGenerator) Generate() error {
 	fmt.Println("Write monthly sales of SMART PHONES for each retailer")
 	// Create a map for TSE overall targets
 	tseSmartPhoneSalesOverallTargets := map[string]int{
-		"Krishna Murthy": 2490,
-		"SATHISH":        1900,
-		"HARISH":         600,
+		"Krishna": 2490,
+		"Sathish": 1900,
+		"Harish":  600,
 	}
 	if err := s.writeSalesReport(reportFile, outputDir, smartPhoneSales, tseSmartPhoneSalesOverallTargets, "SMART PHONES"); err != nil {
 		return fmt.Errorf("error writing smartphone sales report: %w", err)
@@ -81,9 +79,9 @@ func (s *SalesTargetGenerator) Generate() error {
 	fmt.Println("Write monthly sales of ACCESSORIES for each retailer")
 	// Create a map for TSE overall targets
 	tseAccessOverallTargets := map[string]int{
-		"Krishna Murthy": 1000,
-		"SATHISH":        800,
-		"HARISH":         600,
+		"Krishna": 1000,
+		"Sathish": 800,
+		"Harish":  600,
 	}
 	if err := s.writeSalesReport(reportFile, outputDir, accessoriesSales, tseAccessOverallTargets, "ACCESSORIES"); err != nil {
 		return fmt.Errorf("error writing accessories sales report: %w", err)
@@ -93,7 +91,9 @@ func (s *SalesTargetGenerator) Generate() error {
 	if err := s.writeSalesReport(reportFile, outputDir, otherSales, tseSmartPhoneSalesOverallTargets, "OTHERS"); err != nil {
 		return fmt.Errorf("error writing other sales report: %w", err)
 	}
-	fmt.Printf("Sales report generated successfully for %s %d: %s \n", time.Now().Month().String(), time.Now().Year(), outputDir)
+	fmt.Println("== End processing! ==")
+	fmt.Println()
+	fmt.Printf("** Output: Sales report generated successfully in: %s ** \n", outputDir)
 	return nil
 }
 

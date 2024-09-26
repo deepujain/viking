@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -13,6 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
+	fmt.Println("Generating credit report of retailers.")
 
 	generator, err := report.NewReportGenerator("credit", cfg)
 	if err != nil {

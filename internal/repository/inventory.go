@@ -48,7 +48,7 @@ func NewExcelInventoryRepository(filePath string, priceData map[string]float64, 
 }
 
 func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*InventoryShortFallRepo, error) {
-	fmt.Printf("Compute Inventory and shortfall for all retailers using %s \n", r.filePath)
+	fmt.Println("Compute current inventory and shortfall for all retailers.")
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open inventory file: %w", err)
