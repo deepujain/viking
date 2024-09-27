@@ -24,8 +24,7 @@ func NewExcelSalesTargetRepository() *ExcelSalesTargetRepository {
 	return &ExcelSalesTargetRepository{}
 }
 
-func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap map[string]string) (map[string]*SalesData, error) {
-	fmt.Printf(" from %s \n", salesFilePath)
+func (r *ExcelSalesTargetRepository) ReadSales(salesFilePath string, tseMap map[string]string) ([]*SalesData, error) {
 	f, err := excelize.OpenFile(salesFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sales file: %w", err)
@@ -57,7 +56,7 @@ func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap m
 		return nil, err
 	}
 
-	sales := make(map[string]*SalesData)
+	sales := make([]*SalesData, 0)
 	for _, row := range rows[9:] {
 		dealerCode := row[dealerCodeIdx]
 		dealerName := row[dealerNameIdx]
@@ -66,24 +65,21 @@ func (r *ExcelSalesTargetRepository) ComputeSales(salesFilePath string, tseMap m
 			continue
 		}
 
-		if data, exists := sales[dealerCode]; exists {
-			data.MTDS++
-			amountStr := row[saleAmountIdx]
-			amount, err := strconv.ParseFloat(amountStr, 64) // Convert to int
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert sale amount to int: %w", err)
-			}
-			data.Value += int(amount)
-		} else {
-			sales[dealerCode] = &SalesData{
-				DealerCode: dealerCode,
-				DealerName: dealerName,
-				MTDS:       1,
-				Value:      0,
-				TSE:        tseMap[dealerCode],
-				ItemName:   itemName,
-			}
+		amountStr := row[saleAmountIdx]
+		amount, err := strconv.ParseFloat(amountStr, 64) // Convert to int
+		if err != nil {
+			continue // Ignore row if conversion fails
 		}
+
+		// Create SalesData object and add to slice
+		sales = append(sales, &SalesData{
+			DealerCode: dealerCode,
+			DealerName: dealerName,
+			MTDS:       1, // Set MTDS to 1 for each entry
+			Value:      int(amount),
+			TSE:        tseMap[dealerCode],
+			ItemName:   itemName,
+		})
 
 	}
 

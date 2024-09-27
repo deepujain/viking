@@ -30,5 +30,5 @@ type PriceListRepository interface {
 	GetMaterialCodeMap() (map[string]int, error)
 }
 type SalesTargetRepository interface {
-	ComputeSales(fileType string, tseMap map[string]string) (map[string]*SalesData, error)
+	ReadSales(fileType string, tseMap map[string]string) ([]*SalesData, error)
 }

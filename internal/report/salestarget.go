@@ -37,35 +37,38 @@ func (s *SalesTargetGenerator) Generate() error {
 
 	tseMap, _ := s.tseMappingRepo.GetRetailerCodeToTSEMap()
 
-	fmt.Print("** Input: Fetching monthly sales from Tally and computing sales for each retailer **")
-	sales, err := s.salesTargetRepo.ComputeSales(s.cfg.ReportFiles.SalesReport, tseMap)
+	fileName := filepath.Base(s.cfg.ReportFiles.SalesReport) // {{ edit_1 }}
+	fmt.Printf("** Input: Fetching monthly sales (%s) from Tally **", fileName)
+
+	sales, err := s.salesTargetRepo.ReadSales(s.cfg.ReportFiles.SalesReport, tseMap)
 	if err != nil {
 		return fmt.Errorf("error : %w", err)
 	}
-
+	fmt.Println()
 	fmt.Println("\n== Begin processing! ==")
 	// Create separate maps for SMART, ACCESSORIES, and others
-	smartPhoneSales := make(map[string]*repository.SalesData)
-	accessoriesSales := make(map[string]*repository.SalesData)
-	otherSales := make(map[string]*repository.SalesData)
+	// Change maps to slices
+	var smartPhoneSales []*repository.SalesData  // {{ edit_1 }}
+	var accessoriesSales []*repository.SalesData // {{ edit_1 }}
+	var otherSales []*repository.SalesData       // {{ edit_1 }}
 
-	for key, data := range sales {
-
+	for _, data := range sales {
 		if strings.Contains(data.ItemName, "SMART") {
-			smartPhoneSales[key] = data
+			//fmt.Printf(" %s -> %d -> %s \n", data.ItemName, data.MTDS, data.TSE)
+			smartPhoneSales = append(smartPhoneSales, data) // {{ edit_2 }}
 		} else if strings.Contains(data.ItemName, "ACCESSORIES") || strings.Contains(data.ItemName, "Buds") {
-			accessoriesSales[key] = data
+			accessoriesSales = append(accessoriesSales, data) // {{ edit_2 }}
 		} else if strings.Contains(data.ItemName, "Item Name") {
 			continue
 		} else {
-			otherSales[key] = data
+			otherSales = append(otherSales, data) // {{ edit_2 }}
 		}
 	}
 
 	reportFile := excel.NewFile()
 	outputDir := utils.GenerateOutputPath(s.cfg.OutputDir, "sales_report")
 	// Invoke writeSalesReport for each category
-	fmt.Println("Write monthly sales of SMART PHONES for each retailer")
+	fmt.Println("Write monthly sales of SMART PHONES")
 	// Create a map for TSE overall targets
 	tseSmartPhoneSalesOverallTargets := map[string]int{
 		"Krishna": 2490,
@@ -75,8 +78,8 @@ func (s *SalesTargetGenerator) Generate() error {
 	if err := s.writeSalesReport(reportFile, outputDir, smartPhoneSales, tseSmartPhoneSalesOverallTargets, "SMART PHONES"); err != nil {
 		return fmt.Errorf("error writing smartphone sales report: %w", err)
 	}
-
-	fmt.Println("Write monthly sales of ACCESSORIES for each retailer")
+	fmt.Println()
+	fmt.Println("Write monthly sales of ACCESSORIES")
 	// Create a map for TSE overall targets
 	tseAccessOverallTargets := map[string]int{
 		"Krishna": 1000,
@@ -86,8 +89,8 @@ func (s *SalesTargetGenerator) Generate() error {
 	if err := s.writeSalesReport(reportFile, outputDir, accessoriesSales, tseAccessOverallTargets, "ACCESSORIES"); err != nil {
 		return fmt.Errorf("error writing accessories sales report: %w", err)
 	}
-
-	fmt.Println("Write monthly sales of OTHERS for each retailer")
+	fmt.Println()
+	fmt.Println("Write monthly sales of OTHERS")
 	if err := s.writeSalesReport(reportFile, outputDir, otherSales, tseSmartPhoneSalesOverallTargets, "OTHERS"); err != nil {
 		return fmt.Errorf("error writing other sales report: %w", err)
 	}
@@ -97,7 +100,7 @@ func (s *SalesTargetGenerator) Generate() error {
 	return nil
 }
 
-func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales map[string]*repository.SalesData, tseSalesTarget map[string]int, productType string) error {
+func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir string, sales []*repository.SalesData, tseSalesTarget map[string]int, productType string) error {
 	salesReportSheet := productType
 	// Create a new sheet
 	if _, err := f.NewSheet(salesReportSheet); err != nil {
@@ -109,7 +112,7 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 		return fmt.Errorf("error creating output directory: %w", err)
 	}
 
-	fmt.Printf("Compute and write overall targets for TSE for %s \n", productType)
+	fmt.Printf("Compute and write overall targets for TSE for == %s ==\n", productType)
 	var startRow = 1
 	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{productType}, startRow, 5); err != nil {
 		return err
@@ -130,7 +133,6 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 	if err := excel.WriteHeadersIdx(f, salesReportSheet, []string{"Sales"}, overallRow, 5); err != nil {
 		return err
 	}
-	fmt.Printf("Compute and write sales report of each retailer and TSE for %s.\n", productType)
 	err = g.writeSales(overallRow+1, f, salesReportSheet, sales)
 	if err != nil {
 		return err
@@ -142,16 +144,16 @@ func (g *SalesTargetGenerator) writeSalesReport(f *excelize.File, outputDir stri
 	return f.SaveAs(outputPath)
 }
 
-func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData, target map[string]int, f *excelize.File, salesReportSheet string, headers []string, startRow int) (int, error) {
-	salesTSE := make(map[string]*repository.SalesData)
+func (*SalesTargetGenerator) writeTarget(sales []*repository.SalesData, target map[string]int, f *excelize.File, salesReportSheet string, headers []string, startRow int) (int, error) {
+	salesAcheivedByTSE := make(map[string]*repository.SalesData)
 	for _, data := range sales {
 		tse := data.TSE
 		if tse != "" {
-			if existingData, exists := salesTSE[tse]; exists {
+			if existingData, exists := salesAcheivedByTSE[tse]; exists {
 				existingData.MTDS += data.MTDS
 				existingData.Value += data.Value
 			} else {
-				salesTSE[tse] = &repository.SalesData{ // {{ edit_1 }}
+				salesAcheivedByTSE[tse] = &repository.SalesData{ // {{ edit_1 }}
 					TSE:        tse,
 					MTDS:       data.MTDS,
 					Value:      data.Value,
@@ -186,8 +188,13 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 			{Type: "right", Color: "000000", Style: 1},
 		},
 	})
+	fmt.Println(headers)
+	for _, data := range salesAcheivedByTSE {
+		// Print each entry to the console
+		fmt.Printf("TSE: %s, MTDS: %d, Value: %d\n", data.TSE, data.MTDS, data.Value) // {{ edit_1 }}
+	}
 
-	for _, data := range salesTSE {
+	for _, data := range salesAcheivedByTSE {
 		tgt := target[data.TSE]
 		bal := target[data.TSE] - data.MTDS
 		balPct := (float64(bal) / float64(tgt)) * 100.00
@@ -234,7 +241,7 @@ func (*SalesTargetGenerator) writeTarget(sales map[string]*repository.SalesData,
 	return targetRow, nil
 }
 
-func (*SalesTargetGenerator) writeSales(row int, f *excelize.File, salesReportSheet string, sales map[string]*repository.SalesData) error {
+func (*SalesTargetGenerator) writeSales(row int, f *excelize.File, salesReportSheet string, sales []*repository.SalesData) error {
 	headers := []string{"Dealer Code", "Dealer Name", "Sell Out", "Total Sales Value(₹)", "TSE"}
 	if err := excel.WriteHeadersIdx(f, salesReportSheet, headers, row, 0); err != nil {
 		return err
