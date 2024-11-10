@@ -56,3 +56,15 @@ func WriteExcelFile(f *excelize.File, filePath string) error {
 	}
 	return nil
 }
+
+// GetColumnLetter converts a column index (1-based) to the corresponding Excel column letter(s)
+func GetColumnLetter(col int) string {
+	columnLetter := ""
+	for col > 0 {
+		// Adjust to get 1-based index for letters (A = 1, B = 2, ..., Z = 26, AA = 27, etc.)
+		col--
+		columnLetter = string(rune(col%26+'A')) + columnLetter
+		col /= 26
+	}
+	return columnLetter
+}

@@ -39,12 +39,77 @@ type ModelCountRepo struct {
 	Count        int
 }
 
+type SPUInventoryCount struct {
+	DealerCode string
+	DealerName string
+	SPUName    string
+	Count      int
+}
+
+func NewSPUInventoryRepository(filePath string) *ExcelInventoryRepository {
+	return &ExcelInventoryRepository{
+		filePath: filePath,
+	}
+}
+
 func NewExcelInventoryRepository(filePath string, priceData map[string]float64, tseMapping map[string]string) *ExcelInventoryRepository {
 	return &ExcelInventoryRepository{
 		filePath:   filePath,
 		priceData:  priceData,
 		tseMapping: tseMapping,
 	}
+}
+
+func (r *ExcelInventoryRepository) ComputeDealerSPUInventory() (map[string]*SPUInventoryCount, error) {
+	f, err := excelize.OpenFile(r.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inventory file: %w", err)
+	}
+	defer f.Close()
+	fmt.Println("Fetching today's stock inventory data for each retailer.")
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows: %w", err)
+	}
+
+	spuNameIdx, err := utils.GetColumnIndex(f, sheetName, "SPU Name")
+	if err != nil {
+		return nil, err
+	}
+	dealerCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Code")
+	if err != nil {
+		return nil, err
+	}
+	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Name")
+	if err != nil {
+		return nil, err
+	}
+
+	dealerSPUInventory := make(map[string]*SPUInventoryCount)
+	for _, row := range rows[1:] {
+		rawSpuName := row[spuNameIdx]
+		spuName := strings.ReplaceAll(rawSpuName, "realme", "") // Remove "realme" from model
+		dealerCode := row[dealerCodeIdx]
+		dealerName := row[dealerNameIdx]
+
+		if spuName == "" || dealerCode == "" || dealerName == "" {
+			continue
+		}
+		// {{ edit_1 }}: Calculate quantity (QTY) for each retailer and SPU Name
+		if data, exists := dealerSPUInventory[dealerName+spuName]; exists {
+			data.Count += 1 // Increment count for existing SPU
+		} else {
+			dealerSPUInventory[dealerName+spuName] = &SPUInventoryCount{
+				DealerCode: dealerCode,
+				DealerName: dealerName,
+				SPUName:    spuName,
+				Count:      1, // Initialize count
+			}
+		}
+	}
+	return dealerSPUInventory, nil
 }
 
 func (r *ExcelInventoryRepository) ComputeInventoryShortFall() (map[string]*InventoryShortFallRepo, error) {

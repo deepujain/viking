@@ -142,10 +142,10 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 			entry.DealerName,
 			entry.MTDSO,
 			entry.LMTDSO,
-			entry.GrowthSOPct,
+			fmt.Sprintf("%d%%", entry.GrowthSOPct),
 			entry.MTDST,
 			entry.LMTDST,
-			entry.GrowthSTPct,
+			fmt.Sprintf("%d%%", entry.GrowthSTPct),
 		}
 		if err := excel.WriteRow(f, sheetName, row, cellData); err != nil {
 			return err

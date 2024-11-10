@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	generator, err := report.NewReportGenerator("growth", cfg)
+	generator, err := report.NewReportGenerator("zso", cfg)
 	if err != nil {
 		log.Fatalf("Failed to create Growth report generator: %v", err)
 	}
@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("Failed to generate Growth report: %v", err)
 	}
 
-	log.Println("Growth report generated successfully")
+	log.Println("ZSO report generated successfully")
 	time.Sleep(5 * time.Second) // {{ edit_2 }}
 
 }
