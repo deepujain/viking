@@ -99,7 +99,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
      - Material Code
 6. ZSO Report Generation
    - Identifies Zero Stock Out (ZSO) situations where specific models have zero inventory.
-   - Combines sales data and inventory data to determine ZSO status for each dealer.
+   - Combines sales data (Sell Out of LMTD, MTD) and inventory data to determine ZSO status for each dealer.
    - Generates an Excel report highlighting ZSO models and their respective dealers.
    - Supports proactive inventory management and risk mitigation strategies.     
 ## Prerequisites
