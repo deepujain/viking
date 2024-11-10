@@ -40,13 +40,13 @@ func (g *ZSOReportGenerator) Generate() error {
 		return fmt.Errorf("error reading inventory data: %w", err)
 	}
 
-	fmt.Print("Input: Fetching per dealer per SPU last month to date sell through (ST) count")
+	fmt.Print("Input: Fetching per dealer per SPU last month to date sell out (SO) count")
 	lmtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.LMTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD sales data: %w", err)
 	}
 
-	fmt.Print("Input: Fetching per dealer per SPU month to date sell through (ST) count")
+	fmt.Print("Input: Fetching per dealer per SPU month to date sell out (ST) count")
 	mtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.MTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading MTD sales data: %w", err)

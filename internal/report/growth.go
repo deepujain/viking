@@ -31,25 +31,25 @@ func (g *GrowthReportGenerator) Generate() error {
 	fmt.Println("Generating Growth report...")
 
 	fmt.Print("Fetching month to date sell out report")
-	mtdSOData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.MTDSO)
+	mtdSOData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.MTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading MTD SO data: %w", err)
 	}
 
 	fmt.Print("Fetching last month to date sell out report")
-	lmtdSOData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.LMTDSO)
+	lmtdSOData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.LMTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD SO data: %w", err)
 	}
 
 	fmt.Print("Fetching month to date sell through report")
-	mtdSTData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.MTDST)
+	mtdSTData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.MTDST)
 	if err != nil {
 		return fmt.Errorf("error reading MTD ST data: %w", err)
 	}
 
 	fmt.Print("Fetching last month to date sell through report")
-	lmtdSTData, err := g.salesRepo.GetSellData(g.cfg.ReportFiles.GrowthReport.LMTDST)
+	lmtdSTData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.LMTDST)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD ST data: %w", err)
 	}

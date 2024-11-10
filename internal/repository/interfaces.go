@@ -23,7 +23,7 @@ type CreditRepository interface {
 }
 
 type SalesRepository interface {
-	GetSellData(fileType string) (map[string]*SellData, error)
+	GetSales(fileType string) (map[string]*SellData, error)
 	GetDealerSPUSales(salesFilePath string) (map[string]*DealerSPUSales, error)
 }
 

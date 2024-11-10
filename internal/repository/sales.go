@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"strings"
+	"time"
 	"viking-reports/internal/utils"
 
 	"github.com/xuri/excelize/v2"
@@ -26,6 +27,7 @@ type SellData struct {
 	DealerCode string
 	DealerName string
 	MTDS       int
+	Date       string
 }
 
 type DealerSPUSales struct {
@@ -39,7 +41,7 @@ func NewExcelSalesRepository() *ExcelSalesRepository {
 	return &ExcelSalesRepository{}
 }
 
-func (r *ExcelSalesRepository) GetSellData(salesFilePath string) (map[string]*SellData, error) {
+func (r *ExcelSalesRepository) GetSales(salesFilePath string) (map[string]*SellData, error) {
 	fmt.Printf(" from %s \n", salesFilePath)
 	f, err := excelize.OpenFile(salesFilePath)
 	if err != nil {
@@ -69,13 +71,31 @@ func (r *ExcelSalesRepository) GetSellData(salesFilePath string) (map[string]*Se
 			return nil, err
 		}
 	}
+	activateTimeIdx, err := utils.GetColumnIndex(f, sheetName, "Activate Time")
+	if err != nil {
+		// Try with "activateTime" if "Activate Time" is not found
+		activateTimeIdx, err = utils.GetColumnIndex(f, sheetName, "activateTime")
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	sellData := make(map[string]*SellData)
 	for _, row := range rows[1:] {
 		dealerCode := row[dealerCodeIdx]
 		dealerName := row[dealerNameIdx]
+		activationTime := row[activateTimeIdx]
 
-		if dealerCode == "" {
+		// Filter lmtdSOData to keep only records with Date less than today
+		today := time.Now()
+		todayDay := today.Day()
+		saleDate, _ := time.Parse("2006-01-02 15:04:05", activationTime)
+		saleDay := saleDate.Day() // Extract day from activation time
+
+		if dealerCode == "" || saleDay > todayDay {
+			if dealerCode == "IN001525" {
+				fmt.Println(saleDate)
+			}
 			continue
 		}
 
@@ -85,6 +105,7 @@ func (r *ExcelSalesRepository) GetSellData(salesFilePath string) (map[string]*Se
 			sellData[dealerCode] = &SellData{
 				DealerCode: dealerCode,
 				DealerName: dealerName,
+				Date:       activationTime,
 				MTDS:       1,
 			}
 		}
