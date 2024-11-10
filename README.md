@@ -187,7 +187,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 
 1. Ensure the following Excel files are present in the `data` directory:
    - `data/ProductPriceList.xlsx` (containing price data from the zonal distributor)
-   - `data/inventory/DealerInventory.xlsx` (containing current inventory data for all retailers)
+   - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
 
 2. Run the price list report generator:
    ```
@@ -202,7 +202,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 1. Ensure the following Excel files are present in the `data` directory:
    - `data/MTD-SO.xlsx`
    - `data/LMTD-SO.xlsx`
-   - `data/inventory/DealerInventory.xlsx` (containing current inventory data for all retailers)
+   - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
 
 2. Run the ZSO report generator:
    ```
