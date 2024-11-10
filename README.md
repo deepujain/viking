@@ -47,7 +47,7 @@ Our daily reporting system addresses key business needs:
    - Identify ZSO situations where specific models have zero inventory
    - Enable proactive inventory management to prevent stockouts
    - Support data-driven decisions for inventory replenishment and risk mitigation
-   
+
 ## Key Features
 
 - **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
@@ -125,11 +125,11 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Growth Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `data/common/MTD-SO.xlsx`
-   - `data/common/LMTD-SO.xlsx`
-   - `data/common/MTD-ST.xlsx`
-   - `data/common/LMTD-ST.xlsx`
-   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `data/MTD-SO.xlsx`
+   - `data/LMTD-SO.xlsx`
+   - `data/MTD-ST.xlsx`
+   - `data/LMTD-ST.xlsx`
+   - `data/Retailer Metadata.xlsx`
 
 2. Run the growth report generator:
    ```
@@ -142,8 +142,8 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Credit Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `data/credit_report/Bills.xlsx`
-   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `data/Bills.xlsx`
+   - `data/Retailer Metadata.xlsx`
 
 2. Run the credit report generator:
    ```
@@ -156,9 +156,9 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### COGS Report
 
 1. Ensure the following Excel file is present in the `data` directory:
-   - `data/cogs_report/DealerInventory.xlsx` (containing current inventory data for all retailers)
-   - `data/common/ProductPriceList.xlsx`
-   - `data/common/VIKING'S - DEALER Credit Period LIST.xlsx`
+   - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
+   - `data/ProductPriceList.xlsx`
+   - `data/Retailer Metadata.xlsx`
    - `generated credit report of each tse`
 
 
@@ -173,7 +173,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Sales Report
 
 1. Ensure the following Excel file is present in the `data` directory:
-   - `data/sales/Sales.xlsx` (containing sales data for each retailer)
+   - `data/Sales.xlsx` (containing sales data for each retailer)
 
 2. Run the sales report generator:
    ```
@@ -186,7 +186,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### PriceList Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `data/pricelist/ZonalDistributorPriceList.xlsx` (containing price data from the zonal distributor)
+   - `data/ProductPriceList.xlsx` (containing price data from the zonal distributor)
    - `data/inventory/DealerInventory.xlsx` (containing current inventory data for all retailers)
 
 2. Run the price list report generator:
@@ -200,8 +200,8 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### Steps to Generate ZSO Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `data/common/MTD-SO.xlsx`
-   - `data/common/LMTD-SO.xlsx`
+   - `data/MTD-SO.xlsx`
+   - `data/LMTD-SO.xlsx`
    - `data/inventory/DealerInventory.xlsx` (containing current inventory data for all retailers)
 
 2. Run the ZSO report generator:
