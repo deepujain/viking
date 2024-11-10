@@ -43,6 +43,11 @@ Our daily reporting system addresses key business needs:
    - Assess potential financial exposure in case of retailer flight risk
    - Support inventory optimization and risk mitigation strategies
 
+6. **Zero Stock Out (ZSO) Management**:
+   - Identify ZSO situations where specific models have zero inventory
+   - Enable proactive inventory management to prevent stockouts
+   - Support data-driven decisions for inventory replenishment and risk mitigation
+   
 ## Key Features
 
 - **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
