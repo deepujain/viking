@@ -112,7 +112,7 @@ func (r *ExcelSalesRepository) GetSales(salesFilePath string) (map[string]*SellD
 	return sellData, nil
 }
 
-func (r *ExcelSalesRepository) GetDealerSPUSales(salesFilePath string) (map[string]*DealerSPUSales, error) {
+func (r *ExcelSalesRepository) GetDealerSPUSales(salesFilePath string, modelsOfInterest map[string]struct{}) (map[string]*DealerSPUSales, error) {
 	fmt.Printf(" from %s \n", salesFilePath)
 	f, err := excelize.OpenFile(salesFilePath)
 	if err != nil {
@@ -154,14 +154,21 @@ func (r *ExcelSalesRepository) GetDealerSPUSales(salesFilePath string) (map[stri
 		if spuName == "" || dealerCode == "" || dealerName == "" || !strings.Contains(productType, "mobile") {
 			continue
 		}
-		// {{ edit_1 }}: Calculate quantity (QTY) for each retailer and SPU Name
-		if data, exists := dealerSPUSales[dealerName+spuName]; exists {
+		trimmedSPU := strings.TrimSpace(spuName)
+		if modelsOfInterest != nil {
+			//Skip this SKU if its SPUName is not in modelsOfInterest
+			if _, exists := modelsOfInterest[trimmedSPU]; !exists { //
+				continue
+			}
+		}
+		// Calculate quantity (QTY) for each retailer and SPU Name
+		if data, exists := dealerSPUSales[dealerName+trimmedSPU]; exists {
 			data.Count += 1 // Increment count for existing SPU
 		} else {
 			dealerSPUSales[dealerName+spuName] = &DealerSPUSales{
 				DealerCode: dealerCode,
 				DealerName: dealerName,
-				SPUName:    spuName,
+				SPUName:    trimmedSPU,
 				Count:      1, // Initialize count
 			}
 		}

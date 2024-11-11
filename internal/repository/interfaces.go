@@ -13,7 +13,7 @@ type ProductPriceRepository interface {
 type InventoryRepository interface {
 	ComputeInventoryShortFall() (map[string]*InventoryShortFallRepo, error)
 	ComputeMaterialModelCount() (map[string]*ModelCountRepo, error)
-	ComputeDealerSPUInventory() (map[string]*SPUInventoryCount, error)
+	ComputeDealerSPUInventory(modelsOfInterest map[string]struct{}) (map[string]*SPUInventoryCount, error)
 }
 
 type CreditRepository interface {
@@ -24,7 +24,7 @@ type CreditRepository interface {
 
 type SalesRepository interface {
 	GetSales(fileType string) (map[string]*SellData, error)
-	GetDealerSPUSales(salesFilePath string) (map[string]*DealerSPUSales, error)
+	GetDealerSPUSales(salesFilePath string, modelsOfInterest map[string]struct{}) (map[string]*DealerSPUSales, error)
 }
 
 type PriceListRepository interface {

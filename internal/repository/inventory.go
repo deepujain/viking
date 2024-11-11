@@ -60,7 +60,7 @@ func NewExcelInventoryRepository(filePath string, priceData map[string]float64, 
 	}
 }
 
-func (r *ExcelInventoryRepository) ComputeDealerSPUInventory() (map[string]*SPUInventoryCount, error) {
+func (r *ExcelInventoryRepository) ComputeDealerSPUInventory(modelsOfInterest map[string]struct{}) (map[string]*SPUInventoryCount, error) {
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open inventory file: %w", err)
@@ -97,14 +97,21 @@ func (r *ExcelInventoryRepository) ComputeDealerSPUInventory() (map[string]*SPUI
 		if spuName == "" || dealerCode == "" || dealerName == "" {
 			continue
 		}
+		trimmedSPU := strings.TrimSpace(spuName)
+		if modelsOfInterest != nil {
+			//Skip this SKU if its SPUName is not in modelsOfInterest
+			if _, exists := modelsOfInterest[trimmedSPU]; !exists { //
+				continue
+			}
+		}
 		// {{ edit_1 }}: Calculate quantity (QTY) for each retailer and SPU Name
-		if data, exists := dealerSPUInventory[dealerName+spuName]; exists {
+		if data, exists := dealerSPUInventory[dealerName+trimmedSPU]; exists {
 			data.Count += 1 // Increment count for existing SPU
 		} else {
-			dealerSPUInventory[dealerName+spuName] = &SPUInventoryCount{
+			dealerSPUInventory[dealerName+trimmedSPU] = &SPUInventoryCount{
 				DealerCode: dealerCode,
 				DealerName: dealerName,
-				SPUName:    spuName,
+				SPUName:    trimmedSPU,
 				Count:      1, // Initialize count
 			}
 		}

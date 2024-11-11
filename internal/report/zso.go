@@ -33,22 +33,35 @@ func NewZSOReportGenerator(cfg *config.Config) *ZSOReportGenerator {
 
 func (g *ZSOReportGenerator) Generate() error {
 	fmt.Println("Generating ZSO report...")
-
+	// Define the filter list as a map for easier comparison
+	modelsOfInterest := map[string]struct{}{
+		"C61":        {},
+		"13 5G":      {},
+		"C63":        {},
+		"C65 5G":     {},
+		"GT 6T":      {},
+		"C63 5G":     {},
+		"13 Pro+ 5G": {},
+		"13+ 5G":     {},
+		"13 Pro 5G":  {},
+		"12x 5G":     {},
+		"GT6":        {},
+	}
 	// Fetch inventory and sales data
 	fmt.Print("Input: Fetching per dealer per SPU current inventory count")
-	dealerSPUInventory, err := g.inventoryRepo.ComputeDealerSPUInventory()
+	dealerSPUInventory, err := g.inventoryRepo.ComputeDealerSPUInventory(modelsOfInterest)
 	if err != nil {
 		return fmt.Errorf("error reading inventory data: %w", err)
 	}
 
 	fmt.Print("Input: Fetching per dealer per SPU last month to date sell out (SO) count")
-	lmtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.LMTDSO)
+	lmtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.LMTDSO, modelsOfInterest)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD sales data: %w", err)
 	}
 
 	fmt.Print("Input: Fetching per dealer per SPU month to date sell out (ST) count")
-	mtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.MTDSO)
+	mtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.MTDSO, modelsOfInterest)
 	if err != nil {
 		return fmt.Errorf("error reading MTD sales data: %w", err)
 	}
@@ -68,7 +81,12 @@ func (g *ZSOReportGenerator) Generate() error {
 		inventoryMap[dealerSPUKey] = inventory.Count
 	}
 
-	fmt.Println("Identifying zso.")
+	fmt.Print("Identifying zso for ")
+	for model := range modelsOfInterest {
+		fmt.Print(model)
+		fmt.Print(" ")
+	}
+	fmt.Println()
 	// Track ZSO data and relevant model names
 	zsoData := make(map[string]map[string]string)
 	zsoModelNames := make(map[string]struct{})
@@ -95,6 +113,7 @@ func (g *ZSOReportGenerator) Generate() error {
 	if err != nil {
 		return fmt.Errorf("error writing ZSO report: %w", err)
 	}
+	fmt.Printf("ZSO report generated successfully: %s\n", outputDir)
 
 	return nil
 }
@@ -135,28 +154,12 @@ func (g *ZSOReportGenerator) writeZSOReport(zsoData map[string]map[string]string
 	// Build headers with ZSO model names only
 	headers := []string{"TSE", "Dealer Name"}
 
-	// Define the filter list as a map for easier comparison
-	filteredModels := map[string]struct{}{
-		"C61":        {},
-		"13 5G":      {},
-		"C63":        {},
-		"C65 5G":     {},
-		"GT 6T":      {},
-		"C63 5G":     {},
-		"13 Pro+ 5G": {},
-		"13+ 5G":     {},
-		"13 Pro 5G":  {},
-		"12x 5G":     {},
-		"GT6":        {},
-	}
-
 	// Add ZSO models to headers only if they are present in filteredModels
 	for model := range zsoModelNames {
 		trimmedModel := strings.TrimSpace(model)
-		if _, exists := filteredModels[trimmedModel]; exists { // Check if the trimmed model exists in the filtered model map
-			headers = append(headers, trimmedModel) // Add to headers if present
-		}
+		headers = append(headers, trimmedModel) // Add to headers if present
 	}
+
 	// Sort headers alphabetically
 	sort.Strings(headers[2:]) // Sort the ZSO models in headers
 	// Add the "Total ZSO" header
@@ -202,7 +205,6 @@ func (g *ZSOReportGenerator) writeZSOReport(zsoData map[string]map[string]string
 				f.SetCellStyle(sheetName, cell, cell, defaultCellStyle)
 			}
 			col++
-
 		}
 
 		totalCell, _ := excelize.CoordinatesToCellName(col, row)
