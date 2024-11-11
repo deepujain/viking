@@ -66,7 +66,7 @@ func (g *ZSOReportGenerator) Generate() error {
 		return fmt.Errorf("error reading MTD sales data: %w", err)
 	}
 
-	tseMapping, err := g.tseMappingRepo.GetRetailerNameToTSEMap()
+	tseMapping, err := g.tseMappingRepo.GetRetailerNameToTSEMap("Dealer Name")
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
 	}

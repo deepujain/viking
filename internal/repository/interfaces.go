@@ -2,7 +2,7 @@ package repository
 
 type TSEMappingRepository interface {
 	GetRetailerCodeToTSEMap() (map[string]string, error)
-	GetRetailerNameToTSEMap() (map[string]string, error)
+	GetRetailerNameToTSEMap(dealerNameHeader string) (map[string]string, error)
 	GetRetailerNameToCodeMap() (map[string]string, error)
 }
 

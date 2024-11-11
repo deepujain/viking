@@ -42,7 +42,7 @@ func (g *CreditReportGenerator) Generate() error {
 		return fmt.Errorf("error reading bills: %w", err)
 	}
 
-	tseMapping, err := g.tseMappingRepo.GetRetailerNameToTSEMap()
+	tseMapping, err := g.tseMappingRepo.GetRetailerNameToTSEMap("Tally Name(Dealer Name)")
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
 	}

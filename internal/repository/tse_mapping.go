@@ -53,7 +53,7 @@ func (r *ExcelTSEMappingRepository) GetRetailerCodeToTSEMap() (map[string]string
 	return tseMapping, nil
 }
 
-func (r *ExcelTSEMappingRepository) GetRetailerNameToTSEMap() (map[string]string, error) {
+func (r *ExcelTSEMappingRepository) GetRetailerNameToTSEMap(dealerNameHeader string) (map[string]string, error) {
 	fmt.Println("Input: Fetching retailer name to TSE name map from metadata.")
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
@@ -67,7 +67,7 @@ func (r *ExcelTSEMappingRepository) GetRetailerNameToTSEMap() (map[string]string
 		return nil, fmt.Errorf("failed to get rows: %w", err)
 	}
 
-	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, "Tally Name(Dealer Name)")
+	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, dealerNameHeader)
 	if err != nil {
 		return nil, err
 	}
