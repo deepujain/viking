@@ -16,7 +16,7 @@ func NewExcelTSEMappingRepository(filePath string) *ExcelTSEMappingRepository {
 }
 
 func (r *ExcelTSEMappingRepository) GetRetailerCodeToTSEMap() (map[string]string, error) {
-	fmt.Println("** Input: Fetching retailer code to TSE name map from metadata. **")
+	fmt.Println("Input: Fetching retailer code to TSE name map from ", r.filePath)
 
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *ExcelTSEMappingRepository) GetRetailerCodeToTSEMap() (map[string]string
 }
 
 func (r *ExcelTSEMappingRepository) GetRetailerNameToTSEMap(dealerNameHeader string) (map[string]string, error) {
-	fmt.Println("Input: Fetching retailer name to TSE name map from metadata.")
+	fmt.Println("Input: Fetching retailer name to TSE name map from metadata ", r.filePath)
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open TSE mapping file: %w", err)
@@ -91,7 +91,7 @@ func (r *ExcelTSEMappingRepository) GetRetailerNameToTSEMap(dealerNameHeader str
 }
 
 func (r *ExcelTSEMappingRepository) GetRetailerNameToCodeMap() (map[string]string, error) {
-	fmt.Println("** Input: Fetching retailer name to retailer code map from metadata. **")
+	fmt.Println("Input: Fetching retailer name to retailer code map from metadata ", r.filePath)
 
 	f, err := excelize.OpenFile(r.filePath)
 	if err != nil {

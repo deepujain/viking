@@ -30,31 +30,30 @@ func NewGrowthReportGenerator(cfg *config.Config) *GrowthReportGenerator {
 func (g *GrowthReportGenerator) Generate() error {
 	fmt.Println("Generating Growth report...")
 
-	fmt.Print("Fetching month to today's date sell out report")
+	fmt.Print("Input: Fetching month to today's date sell out report")
 	mtdSOData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.MTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading MTD SO data: %w", err)
 	}
 
-	fmt.Print("Fetching last month to today's day sell out report")
+	fmt.Print("Input: Fetching last month to today's day sell out report")
 	lmtdSOData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.LMTDSO)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD SO data: %w", err)
 	}
 
-	fmt.Print("Fetching month to today's date sell through report")
+	fmt.Print("Input: Fetching month to today's date sell through report")
 	mtdSTData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.MTDST)
 	if err != nil {
 		return fmt.Errorf("error reading MTD ST data: %w", err)
 	}
 
-	fmt.Print("Fetching last month to today's day sell through report")
+	fmt.Print("Input: Fetching last month to today's day sell through report")
 	lmtdSTData, err := g.salesRepo.GetSales(g.cfg.ReportFiles.GrowthReport.LMTDST)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD ST data: %w", err)
 	}
 
-	fmt.Println("Fetching retailer code to TSE map.")
 	tseMapping, err := g.tseMappingRepo.GetRetailerCodeToTSEMap()
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
