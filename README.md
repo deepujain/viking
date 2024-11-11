@@ -44,7 +44,7 @@ Our daily reporting system addresses key business needs:
    - Assess potential financial exposure in case of retailer flight risk
    - Support inventory optimization and risk mitigation strategies
 
-6. **Zero Stock Out (ZSO) Management**:
+6. **Zero Stock Order (ZSO) Management**:
    - Identify ZSO situations where specific models have zero inventory
    - Enable proactive inventory management to prevent stockouts
    - Support data-driven decisions for inventory replenishment and risk mitigation
@@ -56,7 +56,7 @@ Our daily reporting system addresses key business needs:
 - **COGS Report**: Calculates the total inventory cost for each retailer, assesses potential financial exposure in case of flight risk, and provides insights for inventory management.
 - **Sales Report**: Fetches sales data from Excel files for each retailer, computes month-to-date sales performance, and generates detailed reports categorized by product types.
 - **PriceList Report**: Generates a flat price list of SKUs for the current month, fetching price data from the zonal distributor and inventory data for material codes. Outputs a structured Excel report containing SKU Type, Model, Color, Variant, NLC (Net Landing Cost), MOP (Market Operating Price), MRP (Maximum Retail Price), and Material Code.
-- **ZSO Report**: Identifies Zero Stock Out (ZSO) situations where specific models have zero inventory, combines sales and inventory data to determine ZSO status for each dealer, and generates an Excel report highlighting ZSO models and their respective dealers.
+- **ZSO Report**: Identifies Zero Stock Order (ZSO) situations where specific models have zero inventory, combines sales and inventory data to determine ZSO status for each dealer, and generates an Excel report highlighting ZSO models and their respective dealers.
 - **Automated Daily Generation**: Reports are automatically generated and saved with date-stamped directories for easy tracking and comparison.
 
 By providing these daily reports, Viking Reports empowers businesses to make informed decisions, optimize operations, and drive growth while managing financial risks effectively.
@@ -198,7 +198,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 
 3. The generated report will be saved in a new directory named `price_list_reports_YYYY-MM-DD`.
 
-### Steps to Generate ZSO Report
+### ZSO Report
 
 1. Ensure the following Excel files are present in the `data` directory:
    - `data/MTD-SO.xlsx`
