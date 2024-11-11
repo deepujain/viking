@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"viking-reports/internal/config"
 	"viking-reports/internal/repository"
 	"viking-reports/internal/utils"
@@ -74,7 +75,7 @@ func (g *ZSOReportGenerator) Generate() error {
 
 	for _, salesData := range allSales {
 		dealer := salesData.DealerName
-		model := salesData.SPUName
+		model := strings.TrimSpace(salesData.SPUName)
 
 		if _, dealerExists := zsoData[dealer]; !dealerExists {
 			zsoData[dealer] = make(map[string]string)
@@ -133,9 +134,32 @@ func (g *ZSOReportGenerator) writeZSOReport(zsoData map[string]map[string]string
 
 	// Build headers with ZSO model names only
 	headers := []string{"TSE", "Dealer Name"}
-	for model := range zsoModelNames {
-		headers = append(headers, model)
+
+	// Define the filter list as a map for easier comparison
+	filteredModels := map[string]struct{}{
+		"C61":        {},
+		"13 5G":      {},
+		"C63":        {},
+		"C65 5G":     {},
+		"GT 6T":      {},
+		"C63 5G":     {},
+		"13 Pro+ 5G": {},
+		"13+ 5G":     {},
+		"13 Pro 5G":  {},
+		"12x 5G":     {},
+		"GT6":        {},
 	}
+
+	// Add ZSO models to headers only if they are present in filteredModels
+	for model := range zsoModelNames {
+		trimmedModel := strings.TrimSpace(model)
+		if _, exists := filteredModels[trimmedModel]; exists { // Check if the trimmed model exists in the filtered model map
+			headers = append(headers, trimmedModel) // Add to headers if present
+		}
+	}
+	// Sort headers alphabetically
+	sort.Strings(headers[2:]) // Sort the ZSO models in headers
+	// Add the "Total ZSO" header
 	headers = append(headers, "Total ZSO")
 
 	// Write headers with style
@@ -178,6 +202,7 @@ func (g *ZSOReportGenerator) writeZSOReport(zsoData map[string]map[string]string
 				f.SetCellStyle(sheetName, cell, cell, defaultCellStyle)
 			}
 			col++
+
 		}
 
 		totalCell, _ := excelize.CoordinatesToCellName(col, row)

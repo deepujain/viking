@@ -93,9 +93,6 @@ func (r *ExcelSalesRepository) GetSales(salesFilePath string) (map[string]*SellD
 		saleDay := saleDate.Day() // Extract day from activation time
 
 		if dealerCode == "" || saleDay > todayDay {
-			if dealerCode == "IN001525" {
-				fmt.Println(saleDate)
-			}
 			continue
 		}
 
