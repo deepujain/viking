@@ -229,6 +229,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 1. Ensure the following Excel files are present in the data directory:
    - `data/Sales.xlsx` (containing sales data for each retailer)
    - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
+   - `data/Retailer Metadata.xlsx`
 
 2. Run the RA norms report generator:
    ```
