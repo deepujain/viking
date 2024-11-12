@@ -110,10 +110,10 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    - Generates an Excel report highlighting ZSO models and their respective dealers.
    - Supports proactive inventory management and risk mitigation strategies.     
 7. RA Norms Report Generation
-- Analyzes sales trends and inventory data to identify which retailers need to restock specific mobile models based on RA norms.
-- Computes the minimum stock level required for each retailer, ensuring that they have adequate inventory levels to meet customer demand.
-- Generates a report that helps prioritize inventory replenishment and avoid stockouts.
-- Provides actionable insights to ensure retailers adhere to RA norms.   
+   - Analyzes sales trends and inventory data to identify which retailers need to restock specific mobile models based on RA norms.
+   - Computes the minimum stock level required for each retailer, ensuring that they have adequate inventory levels to meet customer demand.
+   - Generates a report that helps prioritize inventory replenishment and avoid stockouts.
+   - Provides actionable insights to ensure retailers adhere to RA norms.   
 
 ## Prerequisites
 
