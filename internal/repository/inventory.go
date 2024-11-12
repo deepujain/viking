@@ -327,3 +327,76 @@ func (r *ExcelInventoryRepository) ComputeMaterialModelCount() (map[string]*Mode
 
 	return materialCount, nil
 }
+
+func (r *ExcelInventoryRepository) ComputeRADealerSPUInventory(modelsOfInterest map[string]struct{}, raRetailers map[string]int) (map[string]*SPUInventoryCount, error) {
+	fmt.Println("Input: Fetching Retailer Inventory from ", r.filePath)
+
+	f, err := excelize.OpenFile(r.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open inventory file: %w", err)
+	}
+	defer f.Close()
+
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows: %w", err)
+	}
+
+	spuNameIdx, err := utils.GetColumnIndex(f, sheetName, "SPU Name")
+	if err != nil {
+		return nil, err
+	}
+	dealerCodeIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Code")
+	if err != nil {
+		return nil, err
+	}
+	dealerNameIdx, err := utils.GetColumnIndex(f, sheetName, "Dealer Name")
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize map to store inventory count for each RA retailer and SPU combination
+	dealerSPUInventory := make(map[string]*SPUInventoryCount)
+
+	for _, row := range rows[1:] {
+		rawSpuName := row[spuNameIdx]
+		spuName := strings.ReplaceAll(rawSpuName, "realme", "") // Remove "realme" from model
+		dealerCode := row[dealerCodeIdx]
+		dealerName := row[dealerNameIdx]
+
+		// Skip if necessary fields are empty
+		if spuName == "" || dealerCode == "" || dealerName == "" {
+			continue
+		}
+		trimmedSPU := strings.TrimSpace(spuName)
+
+		// Skip SPU if it's not of interest
+		if modelsOfInterest != nil {
+			if _, exists := modelsOfInterest[trimmedSPU]; !exists {
+				continue
+			}
+		}
+
+		// Check if the retailer is an RA retailer
+		if _, isRARetailer := raRetailers[dealerCode]; !isRARetailer {
+			continue // Skip non-RA retailers
+		}
+
+		// Calculate quantity (QTY) for each RA retailer and SPU Name
+		key := dealerCode + trimmedSPU // Unique key for each dealer and SPU
+
+		if data, exists := dealerSPUInventory[key]; exists {
+			data.Count += 1 // Increment count for existing SPU
+		} else {
+			dealerSPUInventory[key] = &SPUInventoryCount{
+				DealerCode: dealerCode,
+				DealerName: dealerName,
+				SPUName:    trimmedSPU,
+				Count:      1, // Initialize count
+			}
+		}
+	}
+
+	return dealerSPUInventory, nil
+}

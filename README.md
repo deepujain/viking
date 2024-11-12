@@ -49,6 +49,11 @@ Our daily reporting system addresses key business needs:
    - Enable proactive inventory management to prevent stockouts
    - Support data-driven decisions for inventory replenishment and risk mitigation
 
+7. **RA Norms**:
+   - RA Norms are used to determine the minimum inventory levels for retailers based on sales trends and required stock replenishment.
+   - Helps optimize inventory management by ensuring each retailer keeps a minimum stock of models that are in demand.
+   - Supports proactive decision-making by identifying retailers that need to restock and prevent potential stockouts.   
+
 ## Key Features
 
 - **Growth Report**: Analyzes SO and ST data, calculates growth percentages, and generates color-coded Excel reports for easy interpretation.
@@ -57,6 +62,7 @@ Our daily reporting system addresses key business needs:
 - **Sales Report**: Fetches sales data from Excel files for each retailer, computes month-to-date sales performance, and generates detailed reports categorized by product types.
 - **PriceList Report**: Generates a flat price list of SKUs for the current month, fetching price data from the zonal distributor and inventory data for material codes. Outputs a structured Excel report containing SKU Type, Model, Color, Variant, NLC (Net Landing Cost), MOP (Market Operating Price), MRP (Maximum Retail Price), and Material Code.
 - **ZSO Report**: Identifies Zero Stock Order (ZSO) situations where specific models have zero inventory, combines sales and inventory data to determine ZSO status for each dealer, and generates an Excel report highlighting ZSO models and their respective dealers.
+- **RA Norms Report**: Identifies which retailers need to restock based on RA norms, considering factors like current inventory levels, sell-through data, and growth patterns. Generates a report that helps businesses optimize inventory replenishment.
 - **Automated Daily Generation**: Reports are automatically generated and saved with date-stamped directories for easy tracking and comparison.
 
 By providing these daily reports, Viking Reports empowers businesses to make informed decisions, optimize operations, and drive growth while managing financial risks effectively.
@@ -103,6 +109,12 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    - Combines sales data (Sell Out of LMTD, MTD) and inventory data to determine ZSO status for each dealer.
    - Generates an Excel report highlighting ZSO models and their respective dealers.
    - Supports proactive inventory management and risk mitigation strategies.     
+7. RA Norms Report Generation
+- Analyzes sales trends and inventory data to identify which retailers need to restock specific mobile models based on RA norms.
+- Computes the minimum stock level required for each retailer, ensuring that they have adequate inventory levels to meet customer demand.
+- Generates a report that helps prioritize inventory replenishment and avoid stockouts.
+- Provides actionable insights to ensure retailers adhere to RA norms.   
+
 ## Prerequisites
 
 - Go 1.x or higher
@@ -212,6 +224,18 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
    ```
 
 3. The generated report will be saved in a new directory named `zso_reports_YYYY-MM-DD`.
+
+### RA Norms Report
+1. Ensure the following Excel files are present in the data directory:
+   - `data/Sales.xlsx` (containing sales data for each retailer)
+   - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
+
+2. Run the RA norms report generator:
+   ```
+   cd ranorms
+   go run main.go
+   ```
+3. The generated RA Norms report will be saved in a new directory named `ranorms_reports_YYYY-MM-DD`.
 
 ## Dependencies
 

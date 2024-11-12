@@ -23,6 +23,8 @@ func NewReportGenerator(reportType string, cfg *config.Config) (ReportGenerator,
 		return NewSalesTargetGenerator(cfg), nil
 	case "zso":
 		return NewZSOReportGenerator(cfg), nil
+	case "ranorms":
+		return NewRANormsReportGenerator(cfg), nil
 	default:
 		return nil, fmt.Errorf("unknown report type: %s", reportType)
 	}

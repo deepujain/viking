@@ -1,7 +1,9 @@
 package repository
 
 type TSEMappingRepository interface {
+	GetRARetailersMap() (map[string]int, error)
 	GetRetailerCodeToTSEMap() (map[string]string, error)
+	GetRetailerCodeToNameMap() (map[string]string, error)
 	GetRetailerNameToTSEMap(dealerNameHeader string) (map[string]string, error)
 	GetRetailerNameToCodeMap() (map[string]string, error)
 }
@@ -14,6 +16,7 @@ type InventoryRepository interface {
 	ComputeInventoryShortFall() (map[string]*InventoryShortFallRepo, error)
 	ComputeMaterialModelCount() (map[string]*ModelCountRepo, error)
 	ComputeDealerSPUInventory(modelsOfInterest map[string]struct{}) (map[string]*SPUInventoryCount, error)
+	ComputeRADealerSPUInventory(modelsOfInterest map[string]struct{}, raRetailers map[string]int) (map[string]*SPUInventoryCount, error)
 }
 
 type CreditRepository interface {
