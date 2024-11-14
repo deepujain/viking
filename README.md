@@ -213,8 +213,7 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 ### ZSO Report
 
 1. Ensure the following Excel files are present in the `data` directory:
-   - `data/MTD-SO.xlsx`
-   - `data/LMTD-SO.xlsx`
+   - `data/L2M-SO.xlsx`
    - `data/DealerInventory.xlsx` (containing current inventory data for all retailers)
 
 2. Run the ZSO report generator:
