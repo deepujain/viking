@@ -54,24 +54,24 @@ func (g *ZSOReportGenerator) Generate() error {
 		return fmt.Errorf("error reading inventory data: %w", err)
 	}
 
-	fmt.Print("Input: Fetching per dealer per SPU last month to date sell out (SO) count")
-	lmtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.LMTDSO, modelsOfInterest)
+	fmt.Print("Input: Fetching per dealer per SPU last two months sell out (SO) count")
+	lmtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.L2MSO, modelsOfInterest)
 	if err != nil {
 		return fmt.Errorf("error reading LMTD sales data: %w", err)
 	}
 
-	fmt.Print("Input: Fetching per dealer per SPU month to date sell out (ST) count")
+	/*fmt.Print("Input: Fetching per dealer per SPU month to date sell out (SO) count")
 	mtdDealerSPUSales, err := g.salesRepo.GetDealerSPUSales(g.cfg.ReportFiles.GrowthReport.MTDSO, modelsOfInterest)
 	if err != nil {
 		return fmt.Errorf("error reading MTD sales data: %w", err)
-	}
+	}*/
 
 	tseMapping, err := g.tseMappingRepo.GetRetailerNameToTSEMap("Dealer Name")
 	if err != nil {
 		return fmt.Errorf("error reading TSE mapping: %w", err)
 	}
 	// Combine LMTD and MTD sales
-	allSales := append(mapToSlice(lmtdDealerSPUSales), mapToSlice(mtdDealerSPUSales)...)
+	allSales := lmtdDealerSPUSales // append(mapToSlice(lmtdDealerSPUSales), mapToSlice(mtdDealerSPUSales)...)
 
 	fmt.Println("Start computation of zso report.")
 	// Build inventory map

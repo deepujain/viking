@@ -38,6 +38,7 @@ type CreditReportFiles struct {
 type GrowthReportFiles struct {
 	MTDSO  string
 	LMTDSO string
+	L2MSO  string
 	MTDST  string
 	LMTDST string
 }
@@ -62,6 +63,7 @@ func Load() (*Config, error) {
 			GrowthReport: GrowthReportFiles{
 				MTDSO:  filepath.Join(dataDir, "MTD-SO.xlsx"),
 				LMTDSO: filepath.Join(dataDir, "LMTD-SO.xlsx"),
+				L2MSO:  filepath.Join(dataDir, "L2M-SO.xlsx"),
 				MTDST:  filepath.Join(dataDir, "MTD-ST.xlsx"),
 				LMTDST: filepath.Join(dataDir, "LMTD-ST.xlsx"),
 			},
