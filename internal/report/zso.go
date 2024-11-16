@@ -36,16 +36,18 @@ func (g *ZSOReportGenerator) Generate() error {
 	// Define the filter list as a map for easier comparison
 	modelsOfInterest := map[string]struct{}{
 		"C61":        {},
-		"13 5G":      {},
 		"C63":        {},
-		"C65 5G":     {},
-		"GT 6T":      {},
 		"C63 5G":     {},
-		"13 Pro+ 5G": {},
+		"C65 5G":     {},
+		"13 5G":      {},
 		"13+ 5G":     {},
 		"13 Pro 5G":  {},
-		"12x 5G":     {},
+		"13 Pro+ 5G": {},
+		"GT 6T":      {},
 		"GT6":        {},
+		"P1 5G":      {},
+		"P1 Pro":     {},
+		"P2 Pro":     {},
 	}
 	// Fetch inventory and sales data
 	fmt.Print("Input: Fetching per dealer per SPU current inventory count")

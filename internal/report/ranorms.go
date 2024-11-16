@@ -33,15 +33,14 @@ func (g *RANormsReportGenerator) Generate() error {
 	// Define the filter list as a map for easier comparison
 	modelsOfInterest := map[string]struct{}{
 		"C61":        {},
-		"13 5G":      {},
 		"C63":        {},
-		"C65 5G":     {},
-		"GT 6T":      {},
 		"C63 5G":     {},
-		"13 Pro+ 5G": {},
+		"C65 5G":     {},
+		"13 5G":      {},
 		"13+ 5G":     {},
+		"13 Pro+ 5G": {},
 		"13 Pro 5G":  {},
-		"12x 5G":     {},
+		"GT 6T":      {},
 		"GT6":        {},
 	}
 	raRetailers, err := g.tseMappingRepo.GetRARetailersMap()
@@ -158,6 +157,8 @@ func (g *RANormsReportGenerator) writeRANormsReport(raNormsData map[string]map[s
 		headers = append(headers, model) // Add model names as headers
 	}
 	headers = append(headers, "Total Refill") // Add total refill column
+	// Sort headers alphabetically
+	sort.Strings(headers[2:]) // Sort the ZSO models in headers
 
 	// Write headers with style
 	for col, header := range headers {
@@ -211,5 +212,7 @@ func (g *RANormsReportGenerator) writeRANormsReport(raNormsData map[string]map[s
 	// Save report to output directory
 	outputPath := filepath.Join(outputDir, "ra_norms_report.xlsx")
 	excel.AdjustColumnWidths(f, sheetName)
+	fmt.Printf("RA report generated successfully: %s\n", outputDir)
 	return f.SaveAs(outputPath)
+
 }
