@@ -61,12 +61,22 @@ func (g *GrowthReportGenerator) Generate() error {
 
 	fmt.Println("Start computation of growth report.")
 	report := g.generateGrowthReport(mtdSOData, lmtdSOData, mtdSTData, lmtdSTData)
-	fmt.Println("Growth report computed.")
+	fmt.Println("Growth report computed for all retailers.")
 
-	fmt.Println("Write growth report.")
+	// New: Aggregate report by TSE
+	tseReports := make(map[string][]repository.GrowthData)
+	for _, entry := range report {
+		tse := tseMapping[entry.DealerCode]
+		tseReports[tse] = append(tseReports[tse], entry)
+	}
+
+	// New: Write separate reports for each TSE
 	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "growth_report")
-	if err := g.writeGrowthReport(outputDir, report, tseMapping); err != nil {
-		return fmt.Errorf("error writing growth report: %w", err)
+	for tse, reportData := range tseReports {
+		fmt.Println("Write growth report for ", tse)
+		if err := g.writeGrowthReport(outputDir, tse, reportData, tseMapping); err != nil {
+			return fmt.Errorf("error writing growth report for TSE %s: %w", tse, err)
+		}
 	}
 
 	fmt.Printf("Growth report generated successfully: %s\n", outputDir)
@@ -109,7 +119,7 @@ func (g *GrowthReportGenerator) getOrCreateSellData(data map[string]*repository.
 	return &repository.SellData{DealerCode: dealerCode, DealerName: "", MTDS: 0}
 }
 
-func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []repository.GrowthData, tseMapping map[string]string) error {
+func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, tse string, report []repository.GrowthData, tseMapping map[string]string) error {
 	f := excel.NewFile()
 	sheetName := "Growth Report"
 
@@ -128,9 +138,9 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 		return err
 	}
 
-	// Sort report by TSE using tseMapping
+	// New: Sort report by Growth SO % with negatives first
 	sort.Slice(report, func(i, j int) bool {
-		return tseMapping[report[i].DealerCode] < tseMapping[report[j].DealerCode]
+		return report[i].GrowthSOPct < report[j].GrowthSOPct // Negatives first
 	})
 
 	row := 2
@@ -213,7 +223,7 @@ func (g *GrowthReportGenerator) writeGrowthReport(outputDir string, report []rep
 	}
 
 	// Ensure the output path has a valid extension
-	fileName := "sales_growth_report.xlsx"
+	fileName := fmt.Sprintf("%s_growth_report.xlsx", tse) // New: Use TSE name in file name
 	outputPath := filepath.Join(outputDir, fileName)
 	excel.AdjustColumnWidths(f, sheetName)
 	return f.SaveAs(outputPath)
