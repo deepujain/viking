@@ -187,6 +187,11 @@ func (g *ZSOReportGenerator) writeZSOReport(zsoData map[string]map[string]string
 	row := 2
 	for _, dealer := range dealers {
 		models := zsoData[dealer]
+		// Only proceed if the dealer has ZSO entries
+		if len(models) == 0 {
+			fmt.Printf("Ignoring retailer: %s as their ZSO does not exist\n", dealer)
+			continue // Skip dealers without ZSO
+		}
 		tseCell, _ := excelize.CoordinatesToCellName(1, row)
 		f.SetCellValue(sheetName, tseCell, tseMapping[dealer])
 		f.SetCellStyle(sheetName, tseCell, tseCell, defaultCellStyle)
