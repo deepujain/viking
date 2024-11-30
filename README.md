@@ -1,6 +1,9 @@
-# Viking Reports
+Vikings is an Android mobile phone and accessories wholesale distribution company in North Bangalore that distributes to hundreds of retailers within the region. Our mission is to provide high-quality products and exceptional service to our partners, ensuring they have the best offerings for their customers. With a strong focus on growth and innovation, Vikings is committed to supporting retailers in achieving their business goals.
 
-Viking Reports is a powerful and user-friendly reporting system designed to generate daily Growth, Credit, and COGS reports. It provides crucial insights that empower businesses to make informed decisions, track performance, and manage risks effectively. By leveraging comprehensive data analysis, Viking Reports helps organizations optimize operations, enhance financial management, and drive sustainable growth.
+
+# Viking Analytics
+
+Viking analytics reports is a powerful and user-friendly reporting system designed to generate daily Growth, Credit, and COGS reports. It provides crucial insights that empower businesses to make informed decisions, track performance, and manage risks effectively. By leveraging comprehensive data analysis, Viking Reports helps organizations optimize operations, enhance financial management, and drive sustainable growth.
 
 
 ## Table of Contents
