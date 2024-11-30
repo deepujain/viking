@@ -3,7 +3,7 @@ Vikings is an Android mobile phone and accessories wholesale distribution compan
 
 # Viking Analytics
 
-Viking Analytics is an intuitive and robust reporting system that generates daily reports on Growth, Credit, and COGS, providing valuable insights for informed decision-making. It provides crucial insights that empower businesses to make informed decisions, track performance, and manage risks effectively. By leveraging comprehensive data analysis, Viking Reports helps organizations optimize operations, enhance financial management, and drive sustainable growth. The reports are produced in Excel format, facilitating easy distribution.
+Viking Analytics is an intuitive and robust reporting system that generates daily reports on Growth, Credit, COGS, Sales, Inventory Management, Price Lists, Zero Stock Orders (ZSO), and RA Norms, providing valuable insights for informed decision-making. It provides crucial insights that empower businesses to make informed decisions, track performance, and manage risks effectively. By leveraging comprehensive data analysis, Viking Reports helps organizations optimize operations, enhance financial management, and drive sustainable growth. The reports are produced in Excel format, facilitating easy distribution.
 
 ## Table of Contents
 
