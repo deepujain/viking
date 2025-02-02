@@ -16,6 +16,7 @@ import (
 type CreditReportGenerator struct {
 	cfg            *config.Config
 	creditRepo     repository.CreditRepository
+	debitRepo      repository.DebitRepository
 	inventoryRepo  repository.InventoryRepository
 	tseMappingRepo repository.TSEMappingRepository
 }
@@ -30,6 +31,7 @@ func NewCreditReportGenerator(cfg *config.Config) *CreditReportGenerator {
 	return &CreditReportGenerator{
 		cfg:            cfg,
 		creditRepo:     repository.NewExcelCreditRepository(cfg.ReportFiles.CreditReport.Bills),
+		debitRepo:      repository.NewExcelDebitRepository(cfg.ReportFiles.DebitReport.Debits),
 		inventoryRepo:  repository.NewExcelInventoryRepository(cfg.ReportFiles.InventoryReport, priceData, tseMapping),
 		tseMappingRepo: repository.NewExcelTSEMappingRepository(cfg.CommonFiles.TSEMapping),
 	}
@@ -51,6 +53,11 @@ func (g *CreditReportGenerator) Generate() error {
 	if err != nil {
 		return fmt.Errorf("error reading Name to Code mapping: %w", err)
 	}
+
+	retailerNameToDebitMap, err := g.debitRepo.GetDebit()
+	if err != nil {
+		return fmt.Errorf("error reading Name to debit mapping: %w", err)
+	}
 	fmt.Println("** Input: Fetching the stock inventory of retailers from DMS portal  **")
 
 	fmt.Println("\n== Begin processing! ==")
@@ -62,7 +69,7 @@ func (g *CreditReportGenerator) Generate() error {
 	}
 
 	outputDir := utils.GenerateOutputPath(g.cfg.OutputDir, "credit_reports")
-	if err := g.writeCreditReports(outputDir, retailerCredit, inventoryData); err != nil {
+	if err := g.writeCreditReports(outputDir, retailerCredit, inventoryData, retailerNameToDebitMap); err != nil {
 		return fmt.Errorf("error writing credit reports: %w", err)
 	}
 	fmt.Println("== End processing! ==")
@@ -71,7 +78,8 @@ func (g *CreditReportGenerator) Generate() error {
 	return nil
 }
 
-func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCredit map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryShortFallRepo) error {
+func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCredit map[string]map[string]interface{},
+	inventoryData map[string]*repository.InventoryShortFallRepo, retailerNameToDebitMap map[string]float64) error {
 	totalDealerCreditWithTSE := make(map[string]map[string]map[string]interface{})
 	totalDealerCreditMissingTSE := make(map[string]map[string]interface{})
 
@@ -89,14 +97,14 @@ func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCre
 	for tseName, retailerCredit := range totalDealerCreditWithTSE {
 		fmt.Printf("Generating total credit report for %d retailers assigned to %s \n", len(retailerCredit), tseName)
 		fileName := fmt.Sprintf("%s_credit_report.xlsx", tseName)
-		if err := g.writeCreditReport(outputDir, fileName, retailerCredit, inventoryData); err != nil {
+		if err := g.writeCreditReport(outputDir, fileName, retailerCredit, inventoryData, retailerNameToDebitMap); err != nil {
 			return fmt.Errorf("error writing file for TSE %s: %w", tseName, err)
 		}
 	}
 
 	if len(totalDealerCreditMissingTSE) > 0 {
 		fmt.Printf("Generating total credit report for %d retailers for which TSE's are *not* assigned!  \n", len(totalDealerCreditMissingTSE))
-		if err := g.writeCreditReport(outputDir, "TSE_MISSING_credit_report.xlsx", totalDealerCreditMissingTSE, inventoryData); err != nil {
+		if err := g.writeCreditReport(outputDir, "TSE_MISSING_credit_report.xlsx", totalDealerCreditMissingTSE, inventoryData, retailerNameToDebitMap); err != nil {
 			return fmt.Errorf("error writing TSE_MISSING file: %w", err)
 		}
 	}
@@ -104,7 +112,8 @@ func (g *CreditReportGenerator) writeCreditReports(outputDir string, retailerCre
 	return nil
 }
 
-func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, data map[string]map[string]interface{}, inventoryData map[string]*repository.InventoryShortFallRepo) error {
+func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, data map[string]map[string]interface{},
+	inventoryData map[string]*repository.InventoryShortFallRepo, retailerNameToDebitMap map[string]float64) error {
 	f := excel.NewFile()
 	sheetName := "Credit Report"
 	// Create a new sheet
@@ -132,7 +141,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 		return fmt.Errorf("failed to create number style: %w", err)
 	}
 
-	headers := []string{"Retailer Code", "Retailer Name", "0-7 Days(₹)", "8-14 Days(₹)", "15-21 Days(₹)", "22-30 Days(₹)", "31+ Days(₹)", "Total Credit(₹)", "Total Inventory Cost(₹)", "Inventory Shortfall (₹)", "TSE"}
+	headers := []string{"Retailer Code", "Retailer Name", "Received: Last 1 days (₹)", "Credit: 0-7 Days(₹)", "Credit: 8-14 Days(₹)", "Credit: 15-20 Days(₹)", "Credit: 21-30 Days(₹)", "Credit: 31+ Days(₹)", "Total Credit(₹)", "Total Inventory Cost(₹)", "Inventory Shortfall (₹)", "TSE"}
 	if err := excel.WriteHeaders(f, sheetName, headers); err != nil {
 		return err
 	}
@@ -165,6 +174,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 	})
 
 	// Write sorted data to the sheet
+	var totalDebitLastDay = 0.0
 	for _, item := range inventoryShortfalls {
 		retailerCredit := item.Credit
 		inventoryShortFall := item.Shortfall
@@ -172,13 +182,15 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 		if dealerData, exists := inventoryData[retailerCredit["Retailer Code"].(string)]; exists {
 			inventoryCost = dealerData.TotalInventoryCost
 		}
+		totalDebitLastDay = totalDebitLastDay + retailerNameToDebitMap[retailerCredit["Retailer Name"].(string)]
 		cellData := []interface{}{
 			retailerCredit["Retailer Code"],
 			retailerCredit["Retailer Name"],
+			retailerNameToDebitMap[retailerCredit["Retailer Name"].(string)],
 			retailerCredit["0-7 Days"],
 			retailerCredit["8-14 Days"],
-			retailerCredit["15-21 Days"],
-			retailerCredit["22-30 Days"],
+			retailerCredit["15-20 Days"],
+			retailerCredit["21-30 Days"],
 			retailerCredit["31+ Days"],
 			retailerCredit["Total Credit"],
 			inventoryCost, // Ensure inventoryCost is defined before use
@@ -249,8 +261,8 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 		retailerCredit := item.Credit
 		total[0] += retailerCredit["0-7 Days"].(float64)
 		total[1] += retailerCredit["8-14 Days"].(float64)
-		total[2] += retailerCredit["15-21 Days"].(float64)
-		total[3] += retailerCredit["22-30 Days"].(float64)
+		total[2] += retailerCredit["15-20 Days"].(float64)
+		total[3] += retailerCredit["21-30 Days"].(float64)
 		total[4] += retailerCredit["31+ Days"].(float64)
 		total[5] += retailerCredit["Total Credit"].(float64)
 
@@ -266,6 +278,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 	totalCellData := []interface{}{
 		"Total", // Label for the total row
 		"",      // Retailer Name
+		totalDebitLastDay,
 		total[0], total[1], total[2], total[3], total[4], total[5], total[6], total[7], "",
 	}
 	if err := excel.WriteRow(f, sheetName, row, totalCellData); err != nil {

@@ -103,8 +103,8 @@ func (r *ExcelCreditRepository) AggregateCreditByRetailer(bills []Bill, tseMappi
 			aggregatedData[retailerName]["Retailer Name"] = retailerName
 			aggregatedData[retailerName]["0-7 Days"] = 0.0
 			aggregatedData[retailerName]["8-14 Days"] = 0.0
-			aggregatedData[retailerName]["15-21 Days"] = 0.0
-			aggregatedData[retailerName]["22-30 Days"] = 0.0
+			aggregatedData[retailerName]["15-20 Days"] = 0.0
+			aggregatedData[retailerName]["21-30 Days"] = 0.0
 			aggregatedData[retailerName]["31+ Days"] = 0.0
 			aggregatedData[retailerName]["Total Credit"] = 0.0
 			aggregatedData[retailerName]["TSE"] = tseMapping[retailerName]
@@ -120,10 +120,10 @@ func (r *ExcelCreditRepository) AggregateCreditByRetailer(bills []Bill, tseMappi
 				aggregatedData[retailerName]["0-7 Days"] = aggregatedData[retailerName]["0-7 Days"].(float64) + bill.PendingAmount
 			case bill.AgeOfBill >= 8 && bill.AgeOfBill <= 14:
 				aggregatedData[retailerName]["8-14 Days"] = aggregatedData[retailerName]["8-14 Days"].(float64) + bill.PendingAmount
-			case bill.AgeOfBill >= 15 && bill.AgeOfBill <= 21:
-				aggregatedData[retailerName]["15-21 Days"] = aggregatedData[retailerName]["15-21 Days"].(float64) + bill.PendingAmount
-			case bill.AgeOfBill >= 22 && bill.AgeOfBill <= 30:
-				aggregatedData[retailerName]["22-30 Days"] = aggregatedData[retailerName]["22-30 Days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill >= 15 && bill.AgeOfBill <= 20:
+				aggregatedData[retailerName]["15-20 Days"] = aggregatedData[retailerName]["15-20 Days"].(float64) + bill.PendingAmount
+			case bill.AgeOfBill >= 21 && bill.AgeOfBill <= 30:
+				aggregatedData[retailerName]["21-30 Days"] = aggregatedData[retailerName]["21-30 Days"].(float64) + bill.PendingAmount
 			default:
 				aggregatedData[retailerName]["31+ Days"] = aggregatedData[retailerName]["31+ Days"].(float64) + bill.PendingAmount
 			}

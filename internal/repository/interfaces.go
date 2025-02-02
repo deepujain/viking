@@ -25,6 +25,10 @@ type CreditRepository interface {
 	AggregateCreditByRetailer(bills []Bill, tseMapping map[string]string, retailerNameToCodeMap map[string]string) map[string]map[string]interface{}
 }
 
+type DebitRepository interface {
+	GetDebit() (map[string]float64, error)
+}
+
 type SalesRepository interface {
 	GetSales(fileType string) (map[string]*SellData, error)
 	GetDealerSPUSales(salesFilePath string, modelsOfInterest map[string]struct{}) (map[string]*DealerSPUSales, error)

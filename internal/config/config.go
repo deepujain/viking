@@ -23,6 +23,7 @@ type CommonFiles struct {
 // ReportFiles holds paths to report-specific files
 type ReportFiles struct {
 	CreditReport    CreditReportFiles
+	DebitReport     DebitReportFiles
 	GrowthReport    GrowthReportFiles
 	SalesReport     string
 	InventoryReport string
@@ -32,6 +33,11 @@ type ReportFiles struct {
 // CreditReportFiles holds paths to credit report files
 type CreditReportFiles struct {
 	Bills string
+}
+
+// DebitReportFiles holds paths to debit report files
+type DebitReportFiles struct {
+	Debits string
 }
 
 // GrowthReportFiles holds paths to growth report files
@@ -59,6 +65,9 @@ func Load() (*Config, error) {
 		ReportFiles: ReportFiles{
 			CreditReport: CreditReportFiles{
 				Bills: filepath.Join(dataDir, "Bills.xlsx"),
+			},
+			DebitReport: DebitReportFiles{
+				Debits: filepath.Join(dataDir, "Received.xlsx"),
 			},
 			GrowthReport: GrowthReportFiles{
 				MTDSO:  filepath.Join(dataDir, "MTD-SO.xlsx"),
