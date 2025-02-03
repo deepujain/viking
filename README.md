@@ -81,7 +81,8 @@ By providing these daily reports, Viking Reports empowers businesses to make inf
 
 2. Credit Report Generation
    - Processes bill data for retailers
-   - Categorizes bills by age (0-7 days, 8-14 days, 15-21 days, 22-30 days, >30 days)
+   - Categorizes bills by age (0-7 days, 8-14 days, 15-20 days, 21-30 days, >30 days)
+   - Compute the amount collected from retailers previous day
    - Aggregates credit data by retailer and TSE (Territory Sales Executive)
    - Generates separate Excel reports for each TSE and a report for missing TSE data
 3. COGS Report Generation
