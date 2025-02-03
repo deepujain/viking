@@ -247,7 +247,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 
 		// Apply redStyle to Inventory Shortfall cells if negative
 		if inventoryShortFall < 0 {
-			cell := fmt.Sprintf("J%d", row) // Column J for Inventory Shortfall
+			cell := fmt.Sprintf("K%d", row) // Column J for Inventory Shortfall
 			if err := f.SetCellStyle(sheetName, cell, cell, redStyle); err != nil {
 				return fmt.Errorf("error setting style for cell %s: %w", cell, err)
 			}
@@ -286,7 +286,7 @@ func (g *CreditReportGenerator) writeCreditReport(outputDir, fileName string, da
 	}
 
 	// Apply number style to total row
-	for col := 3; col <= 10; col++ { // Columns C (4) to I (9)
+	for col := 2; col <= 10; col++ { // Columns C (4) to I (9)
 		cell := fmt.Sprintf("%s%d", string('A'+col), row) // Convert column index to letter
 		if err := f.SetCellStyle(sheetName, cell, cell, numberStyle); err != nil {
 			return fmt.Errorf("error setting style for cell %s: %w", cell, err)
